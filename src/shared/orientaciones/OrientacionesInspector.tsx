@@ -1,4 +1,4 @@
-import { Alert, Input, Space, Typography } from 'antd';
+import { Input, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
 import {
   LEYENDA_AUTOGUARDADO,
@@ -44,21 +44,22 @@ export function OrientacionesInspector({
 
   return (
     <Space direction="vertical" size="small" style={{ width: '100%' }}>
-      <Alert
-        type="info"
-        showIcon
-        message="Lo que escriba aquí orienta el análisis, pero no se toma como hecho probado."
-        description="El sistema mantiene separadas sus orientaciones de los hechos y las pruebas del expediente: aparecen rotuladas en el análisis y nunca sustentan por sí solas una conclusión."
-      />
-
+      {/* La garantía sigue siendo la misma —lo que escriba orienta pero no
+          prueba—; lo que cambia es que ya no ocupa un recuadro de dos párrafos
+          para explicar un campo de texto. El bloque que lo contiene la enuncia
+          en su ayuda y aquí queda el pie. */}
       <TextArea
         value={valor.texto}
         onChange={(e) => escribir(e.target.value)}
         placeholder={EJEMPLOS}
-        autoSize={{ minRows: 8, maxRows: 22 }}
+        autoSize={{ minRows: 6, maxRows: 18 }}
         aria-label="Orientaciones del inspector"
         readOnly={readOnly}
       />
+      <Text type="secondary" style={{ fontSize: TEXTO.nota }}>
+        Sus orientaciones van rotuladas como tales en el análisis y nunca sustentan por sí solas
+        una conclusión.
+      </Text>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <Text type={estado === 'error' ? 'danger' : 'secondary'} style={{ fontSize: TEXTO.nota }}>

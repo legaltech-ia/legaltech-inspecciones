@@ -13,7 +13,7 @@ import {
   Col,
   Space,
 } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { ArrowLeft } from 'lucide-react';
 import { NormaMark } from '@/shared/ai/NormaMark';
 import { NORMA } from '@/shared/ai/identity';
 import dayjs from 'dayjs';
@@ -221,7 +221,7 @@ export function QuejaDetailPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <Button
           type="text"
-          icon={<ArrowLeftOutlined />}
+          icon={<ArrowLeft size={16} strokeWidth={1.75} />}
           onClick={() => navigate('/panel/procesos')}
           style={{ marginBottom: 10, paddingLeft: 0 }}
         >
@@ -229,7 +229,7 @@ export function QuejaDetailPage() {
         </Button>
         <Button
           icon={<NormaMark size={17} />}
-          onClick={() => navigate('/panel/chat', { state: { radicado: data.radicado } })}
+          onClick={() => navigate('/panel/asistente', { state: { radicado: data.radicado } })}
         >
           Preguntarle a {NORMA.nombre}
         </Button>

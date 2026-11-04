@@ -89,6 +89,10 @@ const AYUDA_APARTE: Record<keyof BorradorFallo, string> = {
     'Solo hechos concretos e indiscutibles, en orden cronológico. Sin argumentaciones, presunciones ni apreciaciones subjetivas.',
   tramite: 'Actuación inicial, citaciones, notificaciones, audiencias y pruebas practicadas.',
   juridicProblem: 'El motivo de policía formulado como pregunta asertiva.',
+  descargos:
+    'Lo que expuso el ciudadano en la diligencia, con la constancia de los veinte (20) minutos del art. 223 num. 3 lit. a). Se cita, no se valora.',
+  pruebasObrantes:
+    'Qué pruebas se incorporaron y para qué, su decreto por conducentes y pertinentes, y la práctica y el traslado de las que se surtieron en la diligencia.',
   evidences: 'Valoración de la prueba de ambas partes: querellante y querellado.',
   necesidadProporcionalidad:
     'Por qué la medida correctiva es —o no es— necesaria, razonable y proporcional (Decreto 768, arts. 2.2.8.18.2.1 y 2.2.8.18.2.2: la multa es la última opción).',
@@ -103,6 +107,8 @@ const BORRADOR_VACIO: BorradorFallo = {
   antecedents: '',
   tramite: '',
   juridicProblem: '',
+  descargos: '',
+  pruebasObrantes: '',
   evidences: '',
   necesidadProporcionalidad: '',
   juridicResponse: '',
@@ -297,6 +303,8 @@ export function AnalisisPage({
         antecedents: real(campos.antecedents),
         tramite: real(campos.tramite),
         juridicProblem: real(campos.juridicProblem),
+        descargos: real(campos.descargos),
+        pruebasObrantes: real(campos.pruebasObrantes),
         evidences: real(campos.evidences),
         necesidadProporcionalidad: real(campos.necesidadProporcionalidad),
         juridicResponse: real(campos.juridicResponse),
@@ -521,6 +529,11 @@ export function AnalisisPage({
         </div>
       )}
 
+      {/* Dentro del área de trabajo el avance ya lo lleva el riel de pasos:
+          pintar aquí otro juego de cuatro tarjetas ponía dos indicadores de
+          progreso compitiendo en la misma pantalla. Fuera del área —la ruta
+          /panel/analisis suelta— no hay riel y sí hace falta. */}
+      {!embebido && (
       <ProgresoFallo
         pasos={[
           {
@@ -545,6 +558,7 @@ export function AnalisisPage({
           },
         ]}
       />
+      )}
 
       {caso && (
         <Alert
