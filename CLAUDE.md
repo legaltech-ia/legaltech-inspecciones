@@ -49,3 +49,8 @@ Después de publicarlo, Claude debe esperar revisión antes de hacer merge o ava
 
 ## Proceso actual
 El trabajo activo es Querellas — Fase 3: Mis procesos, Nueva querella y aislamiento de contexto. Consultar el Issue #1 de este repositorio y sus comentarios antes de cualquier cambio relacionado.
+
+
+## Visión del proyecto
+
+Antes de proponer cambios, leer [DOCUMENTO-MAESTRO.md](DOCUMENTO-MAESTRO.md): fuente única de visión, alcance y decisiones de Legaltech.
