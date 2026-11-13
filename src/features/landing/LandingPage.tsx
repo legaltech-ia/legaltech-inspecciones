@@ -322,11 +322,15 @@ const CAPAS_RAG = [
 ] as const;
 
 const GARANTIAS = [
-  ['Solo cita lo que recuperó', 'Toda cita textual se valida contra el apartado exacto de la fuente. Si el texto no coincide literalmente, la respuesta se rechaza y se regenera.'],
-  ['La vigencia no es una opinión', 'El grafo registra qué norma deroga, modifica o condiciona a cuál. Una norma derogada no puede sustentar una actuación: lo impide la estructura, no el modelo.'],
-  ['Precedente con cadena completa', 'Las sentencias se conectan por aristas de reiteración y unificación. La respuesta sigue la cadena hasta el precedente vigente, no hasta el más parecido.'],
-  ['El inspector firma, siempre', 'La IA prepara borradores con fuentes enlazadas. Ninguna actuación sale del despacho sin revisión y firma humana.'],
+  ['Solo razona sobre lo que recuperó', 'El modelo no escribe de memoria: recibe los apartados recuperados del corpus y la respuesta registra cuáles usó. La verificación literal de cada cita contra su apartado exacto está en construcción; cuando entre, un borrador cuya cita no coincida palabra por palabra saldrá marcado como no publicable.'],
+  ['La vigencia se arrastra hasta el prompt', 'Cada norma recuperada llega al modelo anotada con su estado en el grafo normativo —vigente, modificada, derogada o condicionada—, porque la advertencia va dentro del texto o se pierde. El grafo todavía se está poblando: una norma sin estado registrado se muestra como desconocida, nunca como vigente.'],
+  ['El contenido jurídico es dato, no código', 'Normas, comportamientos, términos y plantillas viven en YAML revisable por abogados. Un cambio en la norma no exige un despliegue, y lo que el despacho personaliza no se pierde en la siguiente versión.'],
+  ['El inspector firma, siempre', 'La IA prepara borradores con fuentes enlazadas. Ninguna actuación sale del despacho sin revisión y firma humana, y el sistema no modela facultades que la autoridad no tiene: la apelación se concede y se remite, nunca se resuelve.'],
 ] as const;
+
+// El precedente con cadena de reiteración y unificación salió de este bloque a
+// propósito: la tabla de jurisprudencia está vacía y el prompt del analizador
+// instruye no citar jurisprudencia. Vuelve cuando haya aristas que seguir.
 
 const PRODUCTOS = [
   {

@@ -14,7 +14,7 @@
     "test:run": "vitest run",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
-    "deploy": "npm run build && aws s3 sync dist/ s3://legaltech-web-app --delete --cache-control \"max-age=31536000, public\" --exclude \"index.html\" && aws s3 cp dist/index.html s3://legaltech-web-app/index.html --cache-control \"no-cache, no-store, must-revalidate\" && aws cloudfront create-invalidation --distribution-id E2DDD5J2GYCJDS --paths \"/*\""
+    "deploy": "npm run build && bash ../infrastructure/frontend-inspeccion/deploy.sh"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
