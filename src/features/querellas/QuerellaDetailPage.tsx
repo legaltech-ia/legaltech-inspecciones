@@ -13,7 +13,7 @@ import {
   Space,
   Collapse,
 } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { ArrowLeft } from 'lucide-react';
 import { NormaMark } from '@/shared/ai/NormaMark';
 import { NORMA } from '@/shared/ai/identity';
 import dayjs from 'dayjs';
@@ -24,6 +24,7 @@ import { SiguientePaso } from './SiguientePaso';
 import { LineaTiempoEstados } from './LineaTiempoEstados';
 import { DocumentosExpediente } from '@/shared/documentos/DocumentosExpediente';
 import { PruebasExpediente } from '@/shared/pruebas/PruebasExpediente';
+import { MatrizHechosPruebas } from '@/features/pruebas/MatrizHechosPruebas';
 import { OrientacionesInspector } from '@/shared/orientaciones/OrientacionesInspector';
 import { PartesQuerellaForm } from './PartesQuerellaForm';
 import { AudienciaQuerella } from './AudienciaQuerella';
@@ -193,6 +194,11 @@ export function QuerellaDetailPage() {
       children: <PruebasExpediente caseId={data.id} />,
     },
     {
+      key: 'matriz-probatoria',
+      label: 'Matriz probatoria',
+      children: <MatrizHechosPruebas caseId={data.id} caseMetadataRaw={data.caseMetadataRaw} />,
+    },
+    {
       key: 'orientaciones',
       label: 'Orientaciones',
       children: <OrientacionesInspector caseId={data.id} caseMetadataRaw={data.caseMetadataRaw} />,
@@ -209,7 +215,7 @@ export function QuerellaDetailPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <Button
           type="text"
-          icon={<ArrowLeftOutlined />}
+          icon={<ArrowLeft size={16} strokeWidth={1.75} />}
           onClick={() => navigate('/panel/querellas')}
           style={{ marginBottom: 10, paddingLeft: 0 }}
         >
@@ -217,7 +223,7 @@ export function QuerellaDetailPage() {
         </Button>
         <Button
           icon={<NormaMark size={17} />}
-          onClick={() => navigate('/panel/chat', { state: { radicado: data.radicado } })}
+          onClick={() => navigate('/panel/asistente', { state: { radicado: data.radicado } })}
         >
           Preguntarle a {NORMA.nombre}
         </Button>

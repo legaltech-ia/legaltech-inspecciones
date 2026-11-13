@@ -212,9 +212,14 @@ export function IntakePage({ selector }: { selector?: ReactNode } = {}) {
 
   return (
     <>
+      {/* El resto de las áreas de trabajo (firmeza, querellas…) tienen un
+          maxWidth homogéneo; este panel iba borde a borde en pantallas
+          anchas. Se conserva el split-pane, solo se acota el ancho. */}
       <div
         style={{
           height: 'calc(100vh - 64px)',
+          maxWidth: 1400,
+          margin: '0 auto',
           display: 'flex',
           gap: 0,
           overflow: 'hidden',

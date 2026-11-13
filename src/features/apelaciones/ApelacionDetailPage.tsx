@@ -103,7 +103,7 @@ export function ApelacionDetailPage() {
         </Button>
         <Button
           icon={<NormaMark size={17} />}
-          onClick={() => navigate('/panel/chat', { state: { radicado: data.filingNumber } })}
+          onClick={() => navigate('/panel/asistente', { state: { radicado: data.filingNumber } })}
         >
           Preguntarle a {NORMA.nombre}
         </Button>

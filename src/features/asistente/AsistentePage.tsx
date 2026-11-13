@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Paperclip, Send, Square, X } from 'lucide-react';
+import { Drawer } from 'antd';
+import { Paperclip, Send, Square, Toolbox, X } from 'lucide-react';
+import { glassBackdrop } from '@/theme/glass';
+import { PALETA } from '@/theme/palette';
+import { usePrefersReducedTransparency } from '@/shared/hooks/usePrefersReducedTransparency';
 import { useConversaciones } from '@/shared/ai/useConversaciones';
 import { cargarContextoCaso } from '@/shared/ai/contextoCaso';
 import { NormaMark } from '@/shared/ai/NormaMark';
@@ -38,6 +42,7 @@ const SIN_CASO = '';
  * puede reintentar; no se rellena con datos inventados.
  */
 export function AsistentePage() {
+  const reducirTransparencia = usePrefersReducedTransparency();
   const { conversaciones, activa, activaId, nueva, seleccionar, enviar, detener, enviando } = useConversaciones();
   const config = useInspeccionStore((s) => s.config);
   const [texto, setTexto] = useState('');
@@ -53,9 +58,8 @@ export function AsistentePage() {
   const [artefacto, setArtefacto] = useState<{ titulo: string; artefacto: Artefacto } | null>(null);
   // Anchos de las columnas: arrastrables y recordados entre sesiones.
   const [anchoLateral, setAnchoLateral] = useAnchoPersistido('asistente.ancho.lateral', 268);
-  const [anchoPila, setAnchoPila] = useAnchoPersistido('asistente.ancho.pila', 440);
   const [lateralColapsada, setLateralColapsada] = useState(false);
-  const [pilaColapsada, setPilaColapsada] = useState(false);
+  const [pilaAbierta, setPilaAbierta] = useState(false);
   const finRef = useRef<HTMLDivElement>(null);
   const archivoRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -206,6 +210,18 @@ export function AsistentePage() {
       )}
 
       <section style={estilos.centro}>
+        <div style={estilos.barraSuperior}>
+          <button
+            type="button"
+            style={estilos.btnHerramientas}
+            onClick={() => setPilaAbierta(true)}
+            aria-label="Abrir las herramientas"
+          >
+            <Toolbox size={15} strokeWidth={1.8} />
+            <span>Herramientas</span>
+            {abiertas.length > 0 && <span style={estilos.badgeHerramientas}>{abiertas.length}</span>}
+          </button>
+        </div>
         {caso && (
           <div style={estilos.barraCaso}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -395,26 +411,40 @@ export function AsistentePage() {
         </div>
       </section>
 
-      {!pilaColapsada && (
-        <Separador
-          ancho={anchoPila}
-          min={280}
-          max={720}
-          signo={-1}
-          etiqueta="Ancho de las herramientas"
-          onCambio={setAnchoPila}
+      <Drawer
+        title="Herramientas"
+        open={pilaAbierta}
+        onClose={() => setPilaAbierta(false)}
+        width={440}
+        // El Drawer sólido de antd rompía con el resto del chrome de la app,
+        // donde solo el Dock/TopBar flotan sobre vidrio (ver theme/glass.ts).
+        // Este panel también flota sobre el contenido, así que hereda el
+        // mismo lenguaje en vez del rgba(0,0,0,0.45) plano por defecto.
+        // Bordes redondeados y sombra suave para que no se vea una caja
+        // pesada encima del contenido.
+        styles={{
+          mask: glassBackdrop(reducirTransparencia),
+          content: {
+            ...glassBackdrop(reducirTransparencia),
+            boxShadow: '-4px 0 24px rgba(32,33,36,0.08)',
+            borderTopLeftRadius: 20,
+            borderBottomLeftRadius: 20,
+          },
+          header: {
+            background: 'transparent',
+            borderBottom: `1px solid ${PALETA.borde}`,
+          },
+          body: { background: 'transparent' },
+        }}
+      >
+        <PilaHerramientas
+          abiertas={abiertas}
+          caso={caso}
+          artefacto={artefacto}
+          onAbrir={abrirHerramienta}
+          onCerrar={cerrarHerramienta}
         />
-      )}
-      <PilaHerramientas
-        abiertas={abiertas}
-        caso={caso}
-        artefacto={artefacto}
-        onAbrir={abrirHerramienta}
-        onCerrar={cerrarHerramienta}
-        ancho={anchoPila}
-        colapsada={pilaColapsada}
-        onColapsar={setPilaColapsada}
-      />
+      </Drawer>
     </div>
   );
 }

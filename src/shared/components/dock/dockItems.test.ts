@@ -45,8 +45,8 @@ describe('DOCK_ITEMS', () => {
 });
 
 // Este conjunto está congelado: agregar una entrada tiene que ser deliberado,
-// no un descuido. /panel/asistente y /panel/chat conviven mientras se evalúa
-// la demo del asistente con skills; cuando se decida, una de las dos sale.
+// no un descuido. El chat simple (/panel/chat) se retiró: Legal es ahora una
+// sola entrada, el asistente con skills.
 const ENTRADAS_DEL_MENU = [
   '/panel',
   '/panel/querellas',
@@ -55,7 +55,6 @@ const ENTRADAS_DEL_MENU = [
   '/panel/conmutacion',
   '/panel/pronto-pago',
   '/panel/apelaciones',
-  '/panel/chat',
   '/panel/asistente',
   '/panel/ajustes',
 ];

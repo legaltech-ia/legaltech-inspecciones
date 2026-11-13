@@ -1,11 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
-import { Alert, App, Button, Checkbox, DatePicker, Input, Segmented, Select, Spin, Tag, Typography } from 'antd';
+import { Alert, App, Button, Checkbox, DatePicker, Input, Segmented, Select, Spin, Table, Tag, Typography } from 'antd';
 import {
   DownloadOutlined,
   FilePdfOutlined,
   FileWordOutlined,
   PrinterOutlined,
   SearchOutlined,
+  UnorderedListOutlined,
   WalletOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -14,11 +15,14 @@ import {
   liquidarProntoPago,
   rutasDisponibles,
   MULTA_GENERAL,
+  INCREMENTO_LABEL,
   type CausalIncremento,
   type DocumentoLegal,
   type RutaComparendo,
   type TipoMulta,
 } from '@/derecho';
+import { compararPorProceso } from '@/features/actas/comparendos';
+import { Link } from 'react-router-dom';
 import type { Comparendo } from '@/features/actas/comparendos';
 import { extraerComparendoPdf } from '@/features/actas/extraerComparendoPdf';
 import { descargarDocumentoLegalDocx } from '@/shared/documentos/documentoLegalDocx';
@@ -123,6 +127,7 @@ export function AreaTrabajoAcogida({ via }: { via: ViaAcogida }) {
   // cada página tenía su copia en useState y el .xlsx cargado aquí no existía
   // en la queja de al lado.
   const bd = useComparendosStore((s) => s.comparendos);
+  const bdOrdenada = useMemo(() => [...bd].sort(compararPorProceso), [bd]);
   const [extrayendo, setExtrayendo] = useState(false);
   const [camposExtraidos, setCamposExtraidos] = useState<(keyof Comparendo)[]>([]);
   const [pdfEscaneado, setPdfEscaneado] = useState(false);
@@ -215,6 +220,76 @@ export function AreaTrabajoAcogida({ via }: { via: ViaAcogida }) {
           {via.descripcion}
         </Text>
       </div>
+
+      {/* ── Cola de trabajo: comparendos de la base activa ── */}
+      <Tarjeta style={{ marginBottom: 22 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <Text strong>Cola de trabajo — {via.titulo.toLowerCase()} ({bd.length})</Text>
+          <Link to="/panel/procesos">
+            <Button size="small" icon={<UnorderedListOutlined />}>Ver todos los procesos</Button>
+          </Link>
+        </div>
+        <CargarBaseComparendosButton />
+        <Table<import('@/features/actas/comparendos').Comparendo>
+          size="small"
+          pagination={{ pageSize: 8, hideOnSinglePage: true }}
+          dataSource={bdOrdenada}
+          rowKey={(c) => c.comparendo}
+          onRow={(c) => ({
+            onClick: () => seleccionarComparendo(c.comparendo),
+            style: { cursor: 'pointer' },
+          })}
+          columns={[
+            { title: 'Proceso', dataIndex: 'proceso', key: 'proceso', width: 120 },
+            { title: 'Comparendo', dataIndex: 'comparendo', key: 'comparendo', width: 150 },
+            { title: 'Infractor', dataIndex: 'solicitado', key: 'solicitado', ellipsis: true },
+            {
+              title: 'Multa',
+              dataIndex: 'tipoMulta',
+              key: 'tipoMulta',
+              width: 80,
+              render: (t: TipoMulta) => `Tipo ${t}`,
+            },
+            {
+              title: 'Reincidencia',
+              dataIndex: 'causal',
+              key: 'causal',
+              width: 160,
+              render: (c: CausalIncremento) =>
+                c === 'ninguna' ? (
+                  <Tag color="default">Sin reincidencia</Tag>
+                ) : (
+                  <Tag color="volcano">{INCREMENTO_LABEL[c]}</Tag>
+                ),
+            },
+            {
+              title: 'Estado',
+              key: 'estado',
+              width: 110,
+              render: (_: unknown, c: import('@/features/actas/comparendos').Comparendo) =>
+                datos.comparendo === c.comparendo ? (
+                  <Tag color="processing">En edición</Tag>
+                ) : (
+                  <Tag color="default">Pendiente</Tag>
+                ),
+            },
+            {
+              title: '',
+              key: 'accion',
+              width: 90,
+              render: (_: unknown, c: import('@/features/actas/comparendos').Comparendo) => (
+                <Button
+                  size="small"
+                  type={datos.comparendo === c.comparendo ? 'primary' : 'default'}
+                  onClick={(e) => { e.stopPropagation(); seleccionarComparendo(c.comparendo); }}
+                >
+                  Abrir
+                </Button>
+              ),
+            },
+          ]}
+        />
+      </Tarjeta>
 
       <div style={{ display: 'flex', gap: 22, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 380px', maxWidth: 460, minWidth: 340 }}>

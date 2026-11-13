@@ -10,7 +10,6 @@ export type DockIconKey =
   | 'conmutacion'
   | 'pronto-pago'
   | 'apelaciones'
-  | 'chat-ia'
   | 'asistente'
   | 'configuracion';
 
@@ -137,20 +136,13 @@ export const DOCK_SECTIONS: DockSection[] = [
     titulo: 'Asistente',
     color: MORADO,
     items: [
-      {
-        key: 'chat-ia',
-        label: NORMA.nombre,
-        ayuda: 'Consulta jurídica',
-        iconKey: 'chat-ia',
-        ruta: '/panel/chat',
-        color: MORADO,
-      },
-      // Demo a evaluar: el asistente con skills jurídicas. No reemplaza al chat
-      // todavía — los dos conviven mientras el dueño decide.
+      // Antes convivían dos entradas (chat simple en /panel/chat y este
+      // asistente con skills). El chat simple se retiró: sus atajos ya viven
+      // aquí (ver ColumnaLateral) y esta es ahora la única entrada "Legal".
       {
         key: 'asistente',
-        label: `${NORMA.nombre} con skills`,
-        ayuda: 'Demo en evaluación',
+        label: NORMA.nombre,
+        ayuda: 'Consulta jurídica',
         iconKey: 'asistente',
         ruta: '/panel/asistente',
         color: MORADO,

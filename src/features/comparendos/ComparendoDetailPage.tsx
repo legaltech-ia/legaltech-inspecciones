@@ -307,7 +307,7 @@ export function ComparendoDetailPage() {
         </Button>
         <Button
           icon={<NormaMark size={17} />}
-          onClick={() => navigate('/panel/chat', { state: { radicado: data.radicado } })}
+          onClick={() => navigate('/panel/asistente', { state: { radicado: data.radicado } })}
         >
           Preguntarle a {NORMA.nombre}
         </Button>
