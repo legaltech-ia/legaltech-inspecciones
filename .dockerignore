@@ -6,8 +6,9 @@ node_modules
 dist
 .git
 
-# Secretos y apuntes a localhost. .env.local ademas carga en modo production y
-# apuntaria el bundle a http://localhost:8090/api.
+# Secretos: no tienen por que viajar al contexto de build. (El ENV del
+# Dockerfile gana de todos modos: Vite aplica process.env despues de los
+# archivos .env; no es este archivo lo que protege VITE_API_BASE_URL.)
 .env
 .env.local
 .env.*.local
