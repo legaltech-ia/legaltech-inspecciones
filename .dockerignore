@@ -1,0 +1,27 @@
+# Lo que no debe entrar al contexto de build.
+
+# Se reinstalan/reconstruyen dentro de la imagen; copiarlos la ensucia y rompe
+# node_modules si el host no es linux.
+node_modules
+dist
+.git
+
+# Secretos y apuntes a localhost. .env.local ademas carga en modo production y
+# apuntaria el bundle a http://localhost:8090/api.
+.env
+.env.local
+.env.*.local
+
+# Datos reales del despacho (nombres, cedulas, direcciones). Estan en
+# .gitignore, no viajan al host, y tampoco deben acabar en una imagen.
+public/Plantillas
+local-data
+
+# Ruido local: logs, notas y salidas de herramientas.
+*.log
+.claude
+.superpowers
+.omo
+graphify-out
+docs
+e2e

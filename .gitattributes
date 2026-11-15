@@ -1,0 +1,4 @@
+# core.autocrlf=true le pondria CRLF a estos en un checkout de Windows, y docker
+# se traga el \r como parte del valor: ENV VITE_API_BASE_URL quedaria "/api\r".
+Dockerfile text eol=lf
+*.conf      text eol=lf
