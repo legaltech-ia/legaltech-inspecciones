@@ -27,6 +27,9 @@ import {
 
 const SIN_CASO = '';
 
+/** Ancho del cajón de herramientas; la pila ocupa esto menos el padding del cuerpo (24 por lado). */
+const ANCHO_DRAWER_PILA = 440;
+
 /**
  * Demo del asistente jurídico: el chat real de Legal con skills que aplican
  * un encuadre especializado al mensaje del inspector y, cuando corresponde,
@@ -415,7 +418,7 @@ export function AsistentePage() {
         title="Herramientas"
         open={pilaAbierta}
         onClose={() => setPilaAbierta(false)}
-        width={440}
+        width={ANCHO_DRAWER_PILA}
         // El Drawer sólido de antd rompía con el resto del chrome de la app,
         // donde solo el Dock/TopBar flotan sobre vidrio (ver theme/glass.ts).
         // Este panel también flota sobre el contenido, así que hereda el
@@ -443,6 +446,10 @@ export function AsistentePage() {
           artefacto={artefacto}
           onAbrir={abrirHerramienta}
           onCerrar={cerrarHerramienta}
+          // Dentro del Drawer no hay riel contraído: contraer es cerrar el cajón.
+          ancho={ANCHO_DRAWER_PILA - 48}
+          colapsada={false}
+          onColapsar={() => setPilaAbierta(false)}
         />
       </Drawer>
     </div>
