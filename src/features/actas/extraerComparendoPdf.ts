@@ -2,8 +2,26 @@ import * as pdfjs from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import type { TipoMulta } from '@/derecho';
 import type { Comparendo } from './comparendos';
+import type { ComparendoMetadata } from '@/features/comparendos/types';
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+
+/**
+ * Lo que trae la orden de comparendo del RNMC: las columnas de la BD del
+ * despacho (`Comparendo`) más los seis campos que el Excel nunca tuvo. Esos
+ * seis se tipan desde `ComparendoMetadata`, que es donde terminan al radicar
+ * (ver `useCreateComparendo`), para que no puedan divergir del contrato.
+ */
+export type ComparendoExtraido = Comparendo &
+  Pick<
+    ComparendoMetadata,
+    | 'medidaPolicia'
+    | 'autoridadPolicia'
+    | 'interponeApelacion'
+    | 'sustentacionApelacion'
+    | 'medidaInspector'
+    | 'descargos'
+  >;
 
 /**
  * Extracción de datos de la orden de comparendo a partir del texto del PDF.
@@ -12,8 +30,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
  * como imagen requieren OCR del backend: en ese caso se diligencia manualmente.
  */
 export interface ExtraccionComparendo {
-  datos: Partial<Comparendo>;
-  camposDetectados: (keyof Comparendo)[];
+  datos: Partial<ComparendoExtraido>;
+  camposDetectados: (keyof ComparendoExtraido)[];
   textoDisponible: boolean;
 }
 
@@ -103,14 +121,14 @@ function despuesDe(texto: string, etiquetas: string[]): string | undefined {
 
 export async function extraerComparendoPdf(archivo: File): Promise<ExtraccionComparendo> {
   const texto = await textoDelPdf(archivo);
-  const datos: Partial<Comparendo> = {};
-  const camposDetectados: (keyof Comparendo)[] = [];
+  const datos: Partial<ComparendoExtraido> = {};
+  const camposDetectados: (keyof ComparendoExtraido)[] = [];
 
   if (texto.length < 60) {
     return { datos, camposDetectados, textoDisponible: false };
   }
 
-  const asignar = <K extends keyof Comparendo>(campo: K, valor: Comparendo[K] | undefined) => {
+  const asignar = <K extends keyof ComparendoExtraido>(campo: K, valor: ComparendoExtraido[K] | undefined) => {
     if (valor === undefined || valor === '' || (typeof valor === 'string' && valor.trim() === '')) return;
     datos[campo] = valor;
     camposDetectados.push(campo);

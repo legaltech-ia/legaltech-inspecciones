@@ -7,7 +7,6 @@ import {
   HeartHandshake,
   Wallet,
   Scale,
-  Sparkles,
   SquareSlash,
   Settings,
   ChevronLeft,
@@ -38,7 +37,6 @@ const ICONOS_DOCK: Record<DockIconKey, ReactNode> = {
   conmutacion: <HeartHandshake size={ICONO_TAMANO} strokeWidth={ICONO_TRAZO} />,
   'pronto-pago': <Wallet size={ICONO_TAMANO} strokeWidth={ICONO_TRAZO} />,
   apelaciones: <Scale size={ICONO_TAMANO} strokeWidth={ICONO_TRAZO} />,
-  'chat-ia': <Sparkles size={ICONO_TAMANO} strokeWidth={ICONO_TRAZO} />,
   asistente: <SquareSlash size={ICONO_TAMANO} strokeWidth={ICONO_TRAZO} />,
   configuracion: <Settings size={ICONO_TAMANO} strokeWidth={ICONO_TRAZO} />,
 };

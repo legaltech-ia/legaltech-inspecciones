@@ -22,13 +22,12 @@ COPY . .
 ENV VITE_API_BASE_URL=/api
 ENV VITE_ENABLE_MOCKS=false
 
-# Solo "vite build", no "npm run build": ese script encadena "tsc -b", y hoy
-# c7d22c8 trae 14 errores de tipos previos. Empaquetar no puede ser la puerta de
-# tipos o el piloto se queda sin frontend. Que quede claro para quien venga
-# despues: hoy NADA comprueba tipos en este repo — no hay CI, ni hooks, y
-# "npm test" es vitest, que transpila con esbuild sin mirar tipos. La unica
-# puerta es correr "npm run type-check" a mano. La Tarea 3c del plan la cierra.
-RUN npx vite build
+# "npm run build" encadena "tsc -b && vite build": empaquetar vuelve a ser la
+# puerta de tipos del repo. Es la unica que hay — no hay CI, ni hooks, y
+# "npm test" es vitest, que transpila con esbuild sin mirar tipos — asi que no
+# se degrada a "npx vite build" para desbloquear un build roto: se arreglan los
+# tipos.
+RUN npm run build
 
 FROM nginx:alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf

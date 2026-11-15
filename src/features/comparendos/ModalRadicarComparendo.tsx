@@ -3,8 +3,7 @@ import { Alert, App, Button, DatePicker, Input, Modal, Select, Space, Spin, Tag 
 import { FilePdfOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useCreateComparendo, type NuevoComparendoInput } from './api';
-import { extraerComparendoPdf } from '@/features/actas/extraerComparendoPdf';
-import type { Comparendo as ComparendoExtraido } from '@/features/actas/comparendos';
+import { extraerComparendoPdf, type ComparendoExtraido } from '@/features/actas/extraerComparendoPdf';
 import {
   INCREMENTO_LABEL,
   MULTA_GENERAL,
@@ -102,7 +101,7 @@ export function ModalRadicarComparendo({
         setPdfEscaneado(true);
         return;
       }
-      const e = extraidos as Partial<ComparendoExtraido>;
+      const e: Partial<ComparendoExtraido> = extraidos;
       setDatos((prev) => {
         const articuloNumeral = e.articuloNumeral ?? prev.articuloNumeral;
         const catalogo = buscarComportamiento(articuloNumeral);

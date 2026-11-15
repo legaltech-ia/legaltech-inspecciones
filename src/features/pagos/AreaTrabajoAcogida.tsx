@@ -23,8 +23,7 @@ import {
 } from '@/derecho';
 import { compararPorProceso } from '@/features/actas/comparendos';
 import { Link } from 'react-router-dom';
-import type { Comparendo } from '@/features/actas/comparendos';
-import { extraerComparendoPdf } from '@/features/actas/extraerComparendoPdf';
+import { extraerComparendoPdf, type ComparendoExtraido } from '@/features/actas/extraerComparendoPdf';
 import { descargarDocumentoLegalDocx } from '@/shared/documentos/documentoLegalDocx';
 import { descargarDocumentoLegalPdf } from '@/shared/documentos/documentoLegalPdf';
 import { ExpedientePrevioButton } from '@/shared/documentos/ExpedientePrevioButton';
@@ -129,7 +128,7 @@ export function AreaTrabajoAcogida({ via }: { via: ViaAcogida }) {
   const bd = useComparendosStore((s) => s.comparendos);
   const bdOrdenada = useMemo(() => [...bd].sort(compararPorProceso), [bd]);
   const [extrayendo, setExtrayendo] = useState(false);
-  const [camposExtraidos, setCamposExtraidos] = useState<(keyof Comparendo)[]>([]);
+  const [camposExtraidos, setCamposExtraidos] = useState<(keyof ComparendoExtraido)[]>([]);
   const [pdfEscaneado, setPdfEscaneado] = useState(false);
   const [archivoComparendo, setArchivoComparendo] = useState<File | null>(null);
   const [tieneMultasPendientes, setTieneMultasPendientes] = useState(false);

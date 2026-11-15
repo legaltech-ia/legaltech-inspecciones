@@ -36,7 +36,7 @@ import {
 import { calcularTermino } from '@/shared/terminos/diasHabiles';
 import type { GeneroCiudadano } from '@/derecho/generoDetectado';
 import { compararPorProceso, esIncidenteFirmeza, type Comparendo } from './comparendos';
-import { extraerComparendoPdf } from './extraerComparendoPdf';
+import { extraerComparendoPdf, type ComparendoExtraido } from './extraerComparendoPdf';
 import { VistaPreviaActa } from '@/shared/documentos/VistaPreviaActa';
 import { ExpedientePrevioButton } from '@/shared/documentos/ExpedientePrevioButton';
 import { DescargarExpedienteOficialButton } from '@/shared/documentos/DescargarExpedienteOficialButton';
@@ -85,7 +85,7 @@ const TIPO_MULTA_OPCIONES = ([1, 2, 3, 4] as TipoMulta[]).map((t) => ({
   label: `Tipo ${t}: ${MULTA_GENERAL[t].smdlv} SMDLV ($ ${liquidarMulta(t).valorBase.toLocaleString('es-CO')})`,
 }));
 
-const ETIQUETA_CAMPO: Partial<Record<keyof Comparendo, string>> = {
+const ETIQUETA_CAMPO: Partial<Record<keyof ComparendoExtraido, string>> = {
   comparendo: 'No. comparendo',
   solicitado: 'Nombre',
   cedula: 'Cédula',
@@ -125,7 +125,7 @@ export function ActasFirmezaPage() {
   const [seleccionMasivaKeys, setSeleccionMasivaKeys] = useState<string[]>([]);
   const [apelo, setApelo] = useState(false);
   const [extrayendo, setExtrayendo] = useState(false);
-  const [camposExtraidos, setCamposExtraidos] = useState<(keyof Comparendo)[]>([]);
+  const [camposExtraidos, setCamposExtraidos] = useState<(keyof ComparendoExtraido)[]>([]);
   const [pdfEscaneado, setPdfEscaneado] = useState(false);
   const [archivoComparendo, setArchivoComparendo] = useState<File | null>(null);
   // Estado "Incidente" del registro seleccionado en la base activa — null si el
