@@ -177,12 +177,18 @@ export const ESTADO_COLOR: Record<string, string> = {
   expedida: 'purple',
 };
 
-export function etiquetaEstado(codigo: string): string {
-  return ESTADO_LABEL[codigo] ?? codigo;
+/**
+ * El parámetro admite `undefined` porque en la práctica llega: un expediente
+ * con `current_state_code` NULL pasa por `caso.currentStateCode as Estado…`,
+ * el `as` lo tapa en compilación y el panel acababa pintando el texto
+ * "undefined" junto al asunto.
+ */
+export function etiquetaEstado(codigo: string | null | undefined): string {
+  return codigo ? (ESTADO_LABEL[codigo] ?? codigo) : 'Sin estado';
 }
 
-export function colorEstado(codigo: string): string {
-  return ESTADO_COLOR[codigo] ?? 'default';
+export function colorEstado(codigo: string | null | undefined): string {
+  return codigo ? (ESTADO_COLOR[codigo] ?? 'default') : 'default';
 }
 
 /**

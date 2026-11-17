@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Spin } from 'antd';
 import { AppLayout } from '@/shared/components/AppLayout';
 import { RequireAuth } from '@/features/auth/RequireAuth';
+import { PaginaDeError } from '@/shared/components/PaginaDeError';
 
 // Code-splitting: cada vista se carga bajo demanda para aligerar el arranque.
 const DashboardPage = lazy(() =>
@@ -114,11 +115,12 @@ function Cargando({ children }: { children: ReactNode }) {
 
 export const router = createBrowserRouter([
   // Página informativa pública de legaltech.com.co (migrada del Angular).
-  { path: '/', element: <Cargando><LandingPage /></Cargando> },
-  { path: '/login', element: <Cargando><LoginPage /></Cargando> },
-  { path: '/registro', element: <Cargando><RegisterPage /></Cargando> },
+  { path: '/', element: <Cargando><LandingPage /></Cargando>, errorElement: <PaginaDeError /> },
+  { path: '/login', element: <Cargando><LoginPage /></Cargando>, errorElement: <PaginaDeError /> },
+  { path: '/registro', element: <Cargando><RegisterPage /></Cargando>, errorElement: <PaginaDeError /> },
   {
     path: '/panel',
+    errorElement: <PaginaDeError />,
     element: (
       <RequireAuth>
         <AppLayout />
@@ -198,6 +200,10 @@ export const router = createBrowserRouter([
       // otro filtro; se redirigen para no romper enlaces guardados.
       { path: 'cola', element: <Navigate to="/panel/procesos" replace /> },
       { path: 'fallos', element: <Navigate to="/panel/procesos?fallo=1" replace /> },
+      // Dentro del panel, una ruta que no existe cae aquí y conserva el menú.
+      { path: '*', element: <PaginaDeError /> },
     ],
   },
+  // Fuera del panel (p. ej. /querellas en vez de /panel/querellas).
+  { path: '*', element: <PaginaDeError /> },
 ]);
