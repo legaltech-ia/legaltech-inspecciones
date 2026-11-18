@@ -41,15 +41,37 @@ describe('legalCaseAFila', () => {
     expect(fila.parteB).toBe('Parte B');
   });
 
-  it('acepta las grafías alternativas del mismo papel (queja: quejado o acusado)', () => {
+  /**
+   * En una queja el sujeto procesal es el presunto infractor, no el quejoso
+   * (art. 2.2.8.18.3.3, Decreto 768 de 2025: la queja es el procedimiento
+   * oficioso y "en ningún caso puede variar la calidad de quejoso a
+   * querellante"). Las grafías viejas --`quejado`, `acusado`-- nombraban a esa
+   * misma persona, así que siguen emparejando: lo que cambia es la casilla,
+   * que antes era la segunda.
+   */
+  it('las grafías viejas del presunto infractor siguen emparejando, ahora en su casilla', () => {
     const conQuejado = legalCaseAFila(
       caso({ caseType: 'queja', parties: [parte('quejado', 'Vecino')] }),
     );
     const conAcusado = legalCaseAFila(
       caso({ caseType: 'queja', parties: [parte('acusado', 'Vecino')] }),
     );
-    expect(conQuejado.parteB).toBe('Vecino');
-    expect(conAcusado.parteB).toBe('Vecino');
+    const conCanonico = legalCaseAFila(
+      caso({ caseType: 'queja', parties: [parte('presuntoInfractor', 'Vecino')] }),
+    );
+    expect(conQuejado.parteA).toBe('Vecino');
+    expect(conAcusado.parteA).toBe('Vecino');
+    expect(conCanonico.parteA).toBe('Vecino');
+  });
+
+  /** El quejoso da noticia y no es parte; ocupa la otra casilla, no la del sujeto. */
+  it('el quejoso no ocupa la casilla del presunto infractor', () => {
+    const fila = legalCaseAFila(
+      caso({ caseType: 'queja', parties: [parte('quejoso', 'Quien avisa')] }),
+    );
+
+    expect(fila.parteB).toBe('Quien avisa');
+    expect(fila.parteA).toBe('No identificado');
   });
 
   it('cae a los roles heredados en inglés de los expedientes viejos', () => {

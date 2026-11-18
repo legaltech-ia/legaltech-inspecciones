@@ -46,11 +46,26 @@ export const TIPOS_PROCESO: Record<TipoProceso, DefinicionTipoProceso> = {
   },
   queja: {
     label: 'Queja',
+    /*
+     * La queja es el procedimiento OFICIOSO (art. 2.2.8.18.3.3, Decreto 768 de
+     * 2025): la adelanta la autoridad y su ÚNICO sujeto procesal es el presunto
+     * infractor. Por eso un comparendo se tramita como queja, y por eso esta
+     * entrada se parece a la de `comparendo` y no a la de `querella`.
+     *
+     * El quejoso --quien da noticia-- NO es parte: el mismo artículo dice que
+     * "en ningún caso puede variar la calidad de quejoso a querellante". Ocupa
+     * la segunda casilla porque la bandeja pinta dos columnas, no porque sea
+     * un sujeto procesal.
+     *
+     * Las grafías viejas (`quejado`, `acusado`, PLAINTIFF/DEFENDANT del esquema
+     * en inglés) se conservan como alias: los expedientes ya radicados las
+     * traen y tienen que seguir emparejando.
+     */
     roles: [
-      ['quejoso', 'plaintiff'],
-      ['quejado', 'acusado', 'defendant'],
+      ['presuntoInfractor', 'infractor', 'quejado', 'acusado', 'defendant'],
+      ['quejoso', 'autoridad', 'plaintiff'],
     ],
-    rotulos: ['Quejoso', 'Quejado'],
+    rotulos: ['Presunto infractor', 'Quejoso'],
     ruta: (id) => `/panel/quejas/${id}`,
     diasTerminoPorDefecto: 15,
   },
@@ -248,12 +263,20 @@ export function descripcionTermino(fila: Pick<FilaProceso, 'diasTerminoPresuntiv
 
 const SIN_IDENTIFICAR = 'No identificado';
 
-/** Primer party cuyo rol esté en la lista de candidatos, respetando ese orden. */
+/**
+ * Primer party cuyo rol esté en la lista de candidatos, respetando ese orden.
+ *
+ * Se normalizan LOS DOS lados. Antes solo se bajaba a minúsculas el rol
+ * guardado, así que cualquier alias escrito en camelCase --`presuntoInfractor`,
+ * el nombre canónico del sujeto de una queja-- no emparejaba nunca y la parte
+ * salía como "No identificado" sin que nada avisara.
+ */
 function nombrePorRol(caso: LegalCase, roles: string[]): string {
   const partes = caso.parties ?? [];
   return (
-    roles.map((rol) => partes.find((p) => p.partyRole?.toLowerCase() === rol)).find(Boolean)
-      ?.fullName ?? SIN_IDENTIFICAR
+    roles
+      .map((rol) => partes.find((p) => p.partyRole?.toLowerCase() === rol.toLowerCase()))
+      .find(Boolean)?.fullName ?? SIN_IDENTIFICAR
   );
 }
 
