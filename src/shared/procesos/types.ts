@@ -71,17 +71,20 @@ export const TIPOS_PROCESO: Record<TipoProceso, DefinicionTipoProceso> = {
   },
   comparendo: {
     label: 'Comparendo',
+    // 'presuntoInfractor' es como llega hoy del expediente: antes de que hubiera
+    // fallo no hay infractor, hay un presunto. Sin el, la bandeja mostraba
+    // "No identificado" en un comparendo que si traia su parte.
     roles: [
-      ['infractor', 'defendant'],
+      ['presuntoInfractor', 'infractor', 'defendant'],
       ['autoridad', 'plaintiff'],
     ],
-    rotulos: ['Infractor', 'Autoridad'],
+    rotulos: ['Presunto infractor', 'Autoridad'],
     ruta: (id) => `/panel/comparendos/${id}`,
   },
   acta_firmeza: {
     label: 'Acta de firmeza',
     roles: [
-      ['infractor', 'defendant'],
+      ['presuntoInfractor', 'infractor', 'defendant'],
       ['autoridad', 'plaintiff'],
     ],
     rotulos: ['Infractor', 'Autoridad'],

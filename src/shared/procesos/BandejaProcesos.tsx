@@ -72,7 +72,9 @@ function TagTermino({ fila }: { fila: FilaProceso }) {
     </Tooltip>
   ) : (
     <Tooltip title={tooltip}>
-      <Tag color={diasRestantes <= 3 ? 'warning' : 'success'}>{diasRestantes} días háb.</Tag>
+      <Tag color={diasRestantes <= 3 ? 'warning' : 'success'}>
+        {diasRestantes} {diasRestantes === 1 ? 'día háb.' : 'días háb.'}
+      </Tag>
     </Tooltip>
   );
 }
