@@ -112,7 +112,7 @@ export function LoginPage() {
               marginBottom: 8,
             }}
           >
-            {DESPACHO.nombre} · Ley 1801 de 2016
+            {DESPACHO.nombre}
           </div>
           <Text type="secondary">
             {mfaToken

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, AutoComplete, Button, Card, Form, Input, Typography } from 'antd';
+import { Alert, Button, Card, Form, Input, Select, Typography } from 'antd';
 import { LockOutlined, MailOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { ApiError } from '@/shared/api/client';
@@ -20,39 +20,40 @@ export function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [exito, setExito] = useState<string | null>(null);
 
+  // El valor de la opcion es el CODIGO, no el rotulo: con AutoComplete el
+  // formulario guardaba lo escrito y exigia coincidencia exacta con la lista,
+  // asi que escribir "Manizales" y enviar fallaba con "Selecciona un municipio
+  // de la lista" sin salir siquiera a la red, y el campo se veia lleno.
   const opcionesMunicipio = useMemo(
     () =>
       COLOMBIAN_MUNICIPALITIES.map((m) => ({
-        value: `${m.name}, ${m.department}`,
-        code: m.code,
+        value: m.code,
+        label: `${m.name}, ${m.department}`,
       })),
     [],
   );
 
   const onSubmit = async (values: {
-    username: string;
     fullName: string;
     email: string;
     password: string;
     phoneNumber: string;
-    municipalityName: string;
+    municipalityCode: string;
   }) => {
-    const municipio = opcionesMunicipio.find((o) => o.value === values.municipalityName);
-    if (!municipio) {
-      setError('Selecciona un municipio de la lista.');
-      return;
-    }
-
     setCargando(true);
     setError(null);
     try {
       const res = await register({
-        username: values.username,
+        // La cuenta se identifica por el correo. El contrato de
+        // /public/auth/register sigue pidiendo `username`, asi que viaja el
+        // mismo correo en los dos campos en vez de inventar un nombre que
+        // nadie usa y que luego no sabria escribir para entrar.
+        username: values.email,
         fullName: values.fullName,
         email: values.email,
         password: values.password,
         phoneNumber: values.phoneNumber,
-        municipalityCode: municipio.code,
+        municipalityCode: values.municipalityCode,
       });
       setExito(res?.message || 'Registro exitoso. Ya puedes iniciar sesión.');
       setTimeout(() => navigate('/login'), 2000);
@@ -92,7 +93,7 @@ export function RegisterPage() {
               marginBottom: 8,
             }}
           >
-            {DESPACHO.nombre} · Ley 1801 de 2016
+            {DESPACHO.nombre}
           </div>
           <Text type="secondary">Registra tu despacho en LegalTech.</Text>
         </div>
@@ -108,17 +109,6 @@ export function RegisterPage() {
           disabled={cargando || !!exito}
         >
           <Form.Item
-            name="username"
-            label="Nombre de usuario"
-            rules={[
-              { required: true, message: 'Ingresa un nombre de usuario.' },
-              { min: 3, message: 'Mínimo 3 caracteres.' },
-            ]}
-          >
-            <Input prefix={<UserOutlined />} size="large" />
-          </Form.Item>
-
-          <Form.Item
             name="fullName"
             label="Nombre completo"
             rules={[{ required: true, message: 'Ingresa tu nombre completo.' }]}
@@ -133,8 +123,9 @@ export function RegisterPage() {
               { required: true, message: 'Ingresa tu correo.' },
               { type: 'email', message: 'Correo inválido.' },
             ]}
+            extra="Con este correo entrarás a la plataforma."
           >
-            <Input prefix={<MailOutlined />} size="large" />
+            <Input prefix={<MailOutlined />} size="large" autoComplete="username" />
           </Form.Item>
 
           <Form.Item
@@ -177,17 +168,17 @@ export function RegisterPage() {
           </Form.Item>
 
           <Form.Item
-            name="municipalityName"
+            name="municipalityCode"
             label="Municipio"
             rules={[{ required: true, message: 'Selecciona tu municipio.' }]}
           >
-            <AutoComplete
+            <Select
+              showSearch
               options={opcionesMunicipio}
-              filterOption={(input, option) =>
-                (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
-              }
+              optionFilterProp="label"
               size="large"
               placeholder="Busca tu municipio"
+              notFoundContent="Ningún municipio coincide."
             />
           </Form.Item>
 

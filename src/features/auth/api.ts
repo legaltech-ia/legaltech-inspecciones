@@ -13,6 +13,7 @@ export interface LoginResponseDTO {
 }
 
 export interface RegisterRequestDTO {
+  /** Mismo valor que `email`: la cuenta se identifica por el correo. */
   username: string;
   email: string;
   password: string;

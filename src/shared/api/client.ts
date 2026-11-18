@@ -81,6 +81,11 @@ export async function apiFetch<T>(
     throw new ApiError(res.status, mensaje);
   }
 
-  if (res.status === 204) return undefined as T;
-  return res.json() as Promise<T>;
+  // Un 201 sin cuerpo no es un error: el BFF devuelve Void al registrar un
+  // usuario, y `res.json()` sobre un cuerpo vacio lanzaba SyntaxError. El
+  // formulario de crear cuenta mostraba "No fue posible conectar con el
+  // servidor" con la cuenta ya creada, que es la peor de las dos mentiras.
+  const texto = await res.text();
+  if (!texto) return undefined as T;
+  return JSON.parse(texto) as T;
 }
