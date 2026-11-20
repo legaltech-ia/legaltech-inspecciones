@@ -35,6 +35,7 @@ export function AppLayout() {
       <Dock />
 
       <div
+        className="app-contenido"
         style={{
           flex: 1,
           display: 'flex',
@@ -47,6 +48,7 @@ export function AppLayout() {
         <TopBar />
 
         <main
+          className={esPaginaFullBleed ? 'lienzo lienzo--pleno' : 'lienzo'}
           style={{
             flex: 1,
             padding: esPaginaFullBleed ? 0 : '20px 28px 28px 20px',

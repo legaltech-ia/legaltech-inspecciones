@@ -725,3 +725,59 @@ h3.ant-typography,
   outline: 2px solid var(--border-focus);
   outline-offset: 1px;
 }
+
+/* ── Teléfono ────────────────────────────────────────────────────────────────
+   El riel mide 228 px fijos: a 375 px deja 147 px de lienzo y cada palabra cae
+   en su propia línea. Por debajo de 900 px sale del flujo y se abre como cajón
+   desde la barra superior. */
+.solo-movil {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .solo-escritorio {
+    display: none !important;
+  }
+  .solo-movil {
+    display: inline-flex !important;
+  }
+
+  .app-contenido {
+    padding-left: 0 !important;
+  }
+
+  .dock {
+    transform: translateX(-100%);
+    transition: transform 200ms ease;
+    box-shadow: none;
+  }
+  .dock--abierto {
+    transform: translateX(0);
+    box-shadow: 0 0 40px rgba(15, 23, 42, 0.25);
+  }
+
+  .topbar {
+    padding: 0 12px !important;
+    gap: 8px;
+  }
+  /* Las tres entradas quedan en icono: el nombre no cabe junto a la marca. */
+  .etiqueta-accion {
+    display: none;
+  }
+  .marca-texto > div:first-child {
+    white-space: nowrap;
+  }
+  /* El nombre del despacho no cabe junto a la marca; vive en Configuración. */
+  .marca-texto > div:last-child {
+    display: none;
+  }
+
+  .lienzo:not(.lienzo--pleno) {
+    padding: 16px 12px 24px !important;
+  }
+}
+
+/* Un dominio o un radicado largo no desborda la pantalla: parte la palabra. */
+body {
+  overflow-wrap: break-word;
+}
