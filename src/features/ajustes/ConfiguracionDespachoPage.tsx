@@ -13,6 +13,7 @@ import {
   Alert,
   Space,
   Popconfirm,
+  Tooltip,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -35,7 +36,12 @@ import {
   type NivelResolucionPlantilla,
 } from './useTemplateResolution';
 import { derivarEstadoChecklist, type ChecklistItemEstado, type TipoItemChecklist } from './checklistDespacho';
-import { generarBlobEjemploPlantilla, NOMBRE_PLANTILLA } from '@/shared/documentos/ejemploPlantillas';
+import {
+  generarBlobEjemploPlantilla,
+  tieneEjemploPlantilla,
+  NOMBRE_PLANTILLA,
+} from '@/shared/documentos/ejemploPlantillas';
+import { useCargarMembrete } from '@/shared/despacho/useCargarMembrete';
 import { VisorLateral } from '@/shared/documentos/VisorLateral';
 import { PALETA, ELEVACION } from '@/theme/theme';
 import { ChecklistVisual } from '@/shared/components/ChecklistVisual';
@@ -106,6 +112,7 @@ export function ConfiguracionDespachoPage() {
   const { message } = App.useApp();
   const config = useInspeccionStore((s) => s.config);
   const guardarConfig = useInspeccionStore((s) => s.guardarConfig);
+  const onMembreteCargado = useCargarMembrete();
   const { data: checklist, isLoading: cargandoChecklist, isError: errorChecklist } = useChecklistDespacho();
   const {
     data: resolucion,
@@ -153,19 +160,6 @@ export function ConfiguracionDespachoPage() {
     () => (checklist ? derivarEstadoChecklist(checklist.items, config, plantillasPersonalizadasCount) : []),
     [checklist, config, plantillasPersonalizadasCount],
   );
-
-  // ── Membrete: mismo patrón local-dataURL de AjustesPage. TODO(S3): cuando el
-  // membrete se persista en S3 (ver project_data_governance), este handler y
-  // el de AjustesPage deben converger en un único hook compartido. ──────────
-  function onMembreteCargado(file: File) {
-    const lector = new FileReader();
-    lector.onload = () => {
-      guardarConfig({ membreteDataUrl: String(lector.result) });
-      message.success('Membrete guardado.');
-    };
-    lector.readAsDataURL(file);
-    return false;
-  }
 
   function guardarDatosDespacho() {
     const v = formDespacho.getFieldsValue();
@@ -266,14 +260,23 @@ export function ConfiguracionDespachoPage() {
       width: 320,
       render: (_, fila) => (
         <Space size={6} wrap>
-          <Button
-            size="small"
-            icon={<EyeOutlined />}
-            loading={generandoPrevia === fila.documentKey}
-            onClick={() => verPrevia(fila.documentKey)}
+          <Tooltip
+            title={
+              tieneEjemploPlantilla(fila.documentKey)
+                ? ''
+                : 'Todavía no hay documento de ejemplo para esta plantilla.'
+            }
           >
-            Vista previa
-          </Button>
+            <Button
+              size="small"
+              icon={<EyeOutlined />}
+              disabled={!tieneEjemploPlantilla(fila.documentKey)}
+              loading={generandoPrevia === fila.documentKey}
+              onClick={() => verPrevia(fila.documentKey)}
+            >
+              Vista previa
+            </Button>
+          </Tooltip>
           <Upload
             accept=".md,.txt,.yaml,.yml"
             showUploadList={false}

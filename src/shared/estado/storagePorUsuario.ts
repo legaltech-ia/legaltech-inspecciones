@@ -50,7 +50,13 @@ export function crearStoragePorUsuario<S>(claveBase: string): PersistStorage<S> 
     setItem: (_name, value) => {
       const idUsuario = idUsuarioActual();
       if (!idUsuario) return;
-      localStorage.setItem(`${claveBase}:${idUsuario}`, JSON.stringify(value));
+      try {
+        localStorage.setItem(`${claveBase}:${idUsuario}`, JSON.stringify(value));
+      } catch (error) {
+        // Cuota agotada (p. ej. un membrete enorme): se pierde este guardado,
+        // pero propagar aqui tumba el render de quien llamo a set().
+        console.error(`No se pudo persistir ${claveBase}:`, error);
+      }
     },
     removeItem: (_name) => {
       const idUsuario = idUsuarioActual();

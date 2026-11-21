@@ -9,6 +9,8 @@ import {
   generarConstanciaIncumplimientoActividadPedagogica,
   generarActaFirmeza,
   actaFirmezaComoDocumento,
+  generarActaProntoPago,
+  generarActaConmutacion,
   type DocumentoLegal,
 } from '@/derecho';
 import { generarDocumentoLegalBlob } from '@/shared/documentos/documentoLegalPdf';
@@ -224,6 +226,44 @@ function actaFirmeza(config: ConfigInspeccion): DocumentoLegal {
   }));
 }
 
+function actaProntoPago(config: ConfigInspeccion): DocumentoLegal {
+  return generarActaProntoPago({
+    ...datosDespachoEjemplo(config),
+    proceso: EJEMPLO_BASE.proceso,
+    fechaResolucion: EJEMPLO_BASE.fechaResolucion,
+    comparendo: EJEMPLO_BASE.comparendo,
+    fechaComparendo: EJEMPLO_BASE.fechaComparendo,
+    articuloNumeral: EJEMPLO_BASE.articuloNumeral,
+    solicitado: EJEMPLO_BASE.solicitado,
+    cedula: EJEMPLO_BASE.cedulaSolicitado,
+    direccion: EJEMPLO_BASE.direccionSolicitado,
+    telefono: EJEMPLO_BASE.telefonoSolicitado,
+    tipoMulta: EJEMPLO_BASE.tipoMulta,
+    causal: 'ninguna',
+    documentoCobro: 'DC-EJEMPLO-0001',
+  });
+}
+
+function actaConmutacion(config: ConfigInspeccion): DocumentoLegal {
+  return generarActaConmutacion({
+    ...datosDespachoEjemplo(config),
+    proceso: EJEMPLO_BASE.proceso,
+    fechaResolucion: EJEMPLO_BASE.fechaResolucion,
+    comparendo: EJEMPLO_BASE.comparendo,
+    fechaComparendo: EJEMPLO_BASE.fechaComparendo,
+    articuloNumeral: EJEMPLO_BASE.articuloNumeral,
+    solicitado: EJEMPLO_BASE.solicitado,
+    cedula: EJEMPLO_BASE.cedulaSolicitado,
+    direccion: EJEMPLO_BASE.direccionSolicitado,
+    telefono: EJEMPLO_BASE.telefonoSolicitado,
+    tipoMulta: EJEMPLO_BASE.tipoMulta,
+    causal: 'ninguna',
+    actividadAsignada: 'Jornada pedagógica de convivencia ciudadana',
+    entidadPrograma: 'Secretaría de Gobierno Municipal',
+    fechaLimiteActividad: '2026-07-01',
+  });
+}
+
 /** Nombre de archivo legible para cada documentKey del checklist plantillas-personalizadas. */
 export const NOMBRE_PLANTILLA: Record<string, string> = {
   'auto-avoca-cita-audiencia': 'Auto que avoca y cita a audiencia',
@@ -234,6 +274,8 @@ export const NOMBRE_PLANTILLA: Record<string, string> = {
   'constancia-incumplimiento-pronto-pago': 'Constancia de incumplimiento de pronto pago',
   'constancia-incumplimiento-actividad-pedagogica': 'Constancia de incumplimiento de actividad pedagógica',
   'acta-firmeza': 'Acta de firmeza',
+  'acta-conmutacion': 'Acta de conmutación',
+  'acta-pronto-pago': 'Acta de pronto pago',
 };
 
 const GENERADORES: Record<string, (config: ConfigInspeccion) => DocumentoLegal> = {
@@ -245,7 +287,14 @@ const GENERADORES: Record<string, (config: ConfigInspeccion) => DocumentoLegal> 
   'constancia-incumplimiento-pronto-pago': constanciaProntoPago,
   'constancia-incumplimiento-actividad-pedagogica': constanciaActividadPedagogica,
   'acta-firmeza': actaFirmeza,
+  'acta-conmutacion': actaConmutacion,
+  'acta-pronto-pago': actaProntoPago,
 };
+
+/** La tabla de Configuración del despacho deshabilita la vista previa de lo que no se puede generar. */
+export function tieneEjemploPlantilla(documentKey: string): boolean {
+  return documentKey in GENERADORES;
+}
 
 /** Genera el PDF de ejemplo (Blob) para un documentKey del checklist — null si no hay generador conocido. */
 export async function generarBlobEjemploPlantilla(

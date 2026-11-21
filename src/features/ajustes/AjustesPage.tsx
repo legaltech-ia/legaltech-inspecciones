@@ -33,6 +33,7 @@ import { useAiChat } from '@/shared/ai/useAiChat';
 import { NormaMark } from '@/shared/ai/NormaMark';
 import { NORMA } from '@/shared/ai/identity';
 import { useInspeccionStore } from '@/store/inspeccionStore';
+import { useCargarMembrete } from '@/shared/despacho/useCargarMembrete';
 import { useTokenUsageSummary } from './api';
 import { PALETA, ELEVACION } from '@/theme/theme';
 import { FontSizeControl } from '@/shared/components/FontSizeControl';
@@ -76,6 +77,7 @@ export function AjustesPage() {
 
   const config = useInspeccionStore((s) => s.config);
   const guardarConfig = useInspeccionStore((s) => s.guardarConfig);
+  const onMembreteCargado = useCargarMembrete();
   const { data: uso, isLoading: cargandoUso } = useTokenUsageSummary();
 
   const [form] = Form.useForm<{ municipio: string; inspectorNombre: string; inspeccion: string }>();
@@ -94,16 +96,6 @@ export function AjustesPage() {
     setTexto('');
   };
 
-  function onMembreteCargado(file: File) {
-    const lector = new FileReader();
-    lector.onload = () => {
-      guardarConfig({ membreteDataUrl: String(lector.result) });
-      message.success('Membrete guardado.');
-    };
-    lector.readAsDataURL(file);
-    return false;
-  }
-
   function onGuardar() {
     const valores = form.getFieldsValue();
     guardarConfig({
@@ -115,6 +107,8 @@ export function AjustesPage() {
   }
 
   const porcentajeUso = uso ? Math.min(100, Math.round((uso.totalTokens / uso.limiteTokens) * 100)) : 0;
+  // Redondear a 0 % con consumo real hace creer que no se ha usado nada.
+  const etiquetaUso = uso && uso.totalTokens > 0 && porcentajeUso === 0 ? '< 1 %' : `${porcentajeUso}%`;
 
   return (
     <div style={{ maxWidth: 920, margin: '0 auto' }}>
@@ -152,7 +146,7 @@ export function AjustesPage() {
             Configuración del despacho
           </Text>
           <Text type="secondary" style={{ fontSize: TEXTO.menor, display: 'block' }}>
-            Checklist de datos, membrete, cuenta de recaudo y plantillas propias del despacho.
+            Checklist de datos, membrete, correo de notificaciones y plantillas propias del despacho.
           </Text>
         </div>
         <RightOutlined style={{ color: PALETA.textoTenue }} />
@@ -231,7 +225,7 @@ export function AjustesPage() {
                 <Progress
                   percent={porcentajeUso}
                   strokeColor={porcentajeUso > 90 ? PALETA.rojo : PALETA.azul}
-                  format={() => `${porcentajeUso}%`}
+                  format={() => etiquetaUso}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
                   <Text style={{ fontSize: TEXTO.base }}>

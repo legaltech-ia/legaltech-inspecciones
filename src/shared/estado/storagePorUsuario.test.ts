@@ -104,3 +104,19 @@ describe('crearStoragePorUsuario — migración de una sola vez desde la clave g
     expect(storage.getItem('bd-nunca-existio')).toBeNull();
   });
 });
+
+describe('crearStoragePorUsuario — localStorage sin espacio', () => {
+  it('setItem no propaga el error de cuota: el guardado se pierde, la app no se cae', () => {
+    const storage = crearStoragePorUsuario('espacio-lleno');
+    login('c@prueba.com');
+    const original = localStorage.setItem;
+    localStorage.setItem = () => {
+      throw new DOMException('cuota agotada', 'QuotaExceededError');
+    };
+    try {
+      expect(() => storage.setItem('espacio-lleno', { state: { x: 1 }, version: 0 })).not.toThrow();
+    } finally {
+      localStorage.setItem = original;
+    }
+  });
+});
