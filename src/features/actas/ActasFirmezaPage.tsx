@@ -293,9 +293,20 @@ export function ActasFirmezaPage() {
 
       {/* ── Cola de trabajo: actas de firmeza cargadas desde el CSV/Excel ── */}
       <Tarjeta style={{ marginBottom: 22 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <Text strong>Cola de trabajo — actas de firmeza ({bd.length})</Text>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 10,
+            marginBottom: 12,
+          }}
+        >
+          <Text strong style={{ flex: '1 1 auto', minWidth: 0 }}>
+            Cola de trabajo — actas de firmeza ({bd.length})
+          </Text>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
             <GeneracionMasivaActasButton
               seleccionados={bd.filter((c) => seleccionMasivaKeys.includes(c.comparendo))}
               todos={bd}
@@ -311,6 +322,8 @@ export function ActasFirmezaPage() {
         <Table<Comparendo>
           size="small"
           pagination={{ pageSize: 8, hideOnSinglePage: true }}
+          // Sin esto la tabla se corta por la derecha en un teléfono y se lleva el botón Abrir.
+          scroll={{ x: 'max-content' }}
           dataSource={bdOrdenada}
           rowKey={(c) => c.comparendo}
           rowSelection={{

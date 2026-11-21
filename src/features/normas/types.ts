@@ -4,7 +4,8 @@ export interface LegalBasis {
   id: string | number;
   title: string;
   type: string;
-  publishedAt: string;
+  /** legalbases la deja en null cuando la norma no tiene fecha de publicación. */
+  publishedAt: string | null;
   sourceUrl: string;
 }
 

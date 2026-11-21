@@ -19,6 +19,12 @@ import type { LegalBasis } from './types';
 
 const { Title, Paragraph, Text } = Typography;
 
+/** legalbases devuelve publishedAt null en normas sin fecha; dayjs(null) imprime "Invalid Date". */
+function fechaPublicacion(valor: string | null | undefined, formato: string): string {
+  const fecha = dayjs(valor ?? undefined);
+  return valor && fecha.isValid() ? fecha.format(formato) : 'Sin fecha';
+}
+
 /**
  * Consulta paginada de normas nacionales (microservicio legalbases).
  * Migrado del componente national-norms del frontend Angular.
@@ -56,7 +62,7 @@ export function NormasPage() {
       align: 'right',
       sorter: true,
       sortOrder: orden === 'asc' ? 'ascend' : 'descend',
-      render: (v: string) => dayjs(v).format('DD/MM/YYYY'),
+      render: (v: string | null) => fechaPublicacion(v, 'DD/MM/YYYY'),
     },
     {
       title: 'Descarga',
@@ -174,7 +180,7 @@ export function NormasPage() {
         {d && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: '55vh', overflow: 'auto' }}>
             <Text type="secondary">
-              {d.type?.toUpperCase()} • {dayjs(d.publishedAt).format('DD [de] MMMM [de] YYYY')}
+              {d.type?.toUpperCase()} • {fechaPublicacion(d.publishedAt, 'DD [de] MMMM [de] YYYY')}
             </Text>
             <Button
               icon={<DownloadOutlined />}

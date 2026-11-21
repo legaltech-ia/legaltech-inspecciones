@@ -35,6 +35,7 @@ import { Campo } from '@/shared/ui/Campo';
 import { Tarjeta } from '@/shared/ui/Tarjeta';
 import { datosInicialesAcogida, type FormularioAcogida } from './formularioAcogida';
 import { viaAdmiteTipo, type ViaAcogida } from './viaAcogida';
+import { EstadoEnCola } from './EstadoEnCola';
 import { VistaPreviaActa } from '@/shared/documentos/VistaPreviaActa';
 import { TEXTO } from '@/theme/escala';
 import { useComparendosStore } from '@/shared/comparendos/store';
@@ -127,6 +128,12 @@ export function AreaTrabajoAcogida({ via }: { via: ViaAcogida }) {
   // en la queja de al lado.
   const bd = useComparendosStore((s) => s.comparendos);
   const bdOrdenada = useMemo(() => [...bd].sort(compararPorProceso), [bd]);
+  // La cola cuenta el trabajo de ESTA vía: un tipo que no la admite se sigue listando
+  // —el inspector tiene que ver por qué— pero no es un pendiente suyo.
+  const procedentes = useMemo(
+    () => bdOrdenada.filter((c) => viaAdmiteTipo(via, c.tipoMulta)),
+    [bdOrdenada, via],
+  );
   const [extrayendo, setExtrayendo] = useState(false);
   const [camposExtraidos, setCamposExtraidos] = useState<(keyof ComparendoExtraido)[]>([]);
   const [pdfEscaneado, setPdfEscaneado] = useState(false);
@@ -222,8 +229,19 @@ export function AreaTrabajoAcogida({ via }: { via: ViaAcogida }) {
 
       {/* ── Cola de trabajo: comparendos de la base activa ── */}
       <Tarjeta style={{ marginBottom: 22 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <Text strong>Cola de trabajo — {via.titulo.toLowerCase()} ({bd.length})</Text>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 10,
+            marginBottom: 12,
+          }}
+        >
+          <Text strong style={{ flex: '1 1 auto', minWidth: 0 }}>
+            Cola de trabajo — {via.titulo.toLowerCase()} ({procedentes.length})
+          </Text>
           <Link to="/panel/procesos">
             <Button size="small" icon={<UnorderedListOutlined />}>Ver todos los procesos</Button>
           </Link>
@@ -232,6 +250,8 @@ export function AreaTrabajoAcogida({ via }: { via: ViaAcogida }) {
         <Table<import('@/features/actas/comparendos').Comparendo>
           size="small"
           pagination={{ pageSize: 8, hideOnSinglePage: true }}
+          // Sin esto la tabla se corta por la derecha en un teléfono y se lleva el botón Abrir.
+          scroll={{ x: 'max-content' }}
           dataSource={bdOrdenada}
           rowKey={(c) => c.comparendo}
           onRow={(c) => ({
@@ -265,12 +285,13 @@ export function AreaTrabajoAcogida({ via }: { via: ViaAcogida }) {
               title: 'Estado',
               key: 'estado',
               width: 110,
-              render: (_: unknown, c: import('@/features/actas/comparendos').Comparendo) =>
-                datos.comparendo === c.comparendo ? (
-                  <Tag color="processing">En edición</Tag>
-                ) : (
-                  <Tag color="default">Pendiente</Tag>
-                ),
+              render: (_: unknown, c: import('@/features/actas/comparendos').Comparendo) => (
+                <EstadoEnCola
+                  via={via}
+                  tipoMulta={c.tipoMulta}
+                  enEdicion={datos.comparendo === c.comparendo}
+                />
+              ),
             },
             {
               title: '',
