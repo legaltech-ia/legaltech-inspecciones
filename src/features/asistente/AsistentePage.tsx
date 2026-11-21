@@ -30,6 +30,9 @@ const SIN_CASO = '';
 /** Ancho del cajón de herramientas; la pila ocupa esto menos el padding del cuerpo (24 por lado). */
 const ANCHO_DRAWER_PILA = 440;
 
+/** Mismo corte que el riel del panel (index.css): debajo de esto es un telefono. */
+const ANCHO_MOVIL = 900;
+
 /**
  * Demo del asistente jurídico: el chat real de Legal con skills que aplican
  * un encuadre especializado al mensaje del inspector y, cuando corresponde,
@@ -61,7 +64,8 @@ export function AsistentePage() {
   const [artefacto, setArtefacto] = useState<{ titulo: string; artefacto: Artefacto } | null>(null);
   // Anchos de las columnas: arrastrables y recordados entre sesiones.
   const [anchoLateral, setAnchoLateral] = useAnchoPersistido('asistente.ancho.lateral', 268);
-  const [lateralColapsada, setLateralColapsada] = useState(false);
+  // En un telefono la columna de conversaciones deja 55 px de hilo: nace contraida.
+  const [lateralColapsada, setLateralColapsada] = useState(() => window.innerWidth <= ANCHO_MOVIL);
   const [pilaAbierta, setPilaAbierta] = useState(false);
   const finRef = useRef<HTMLDivElement>(null);
   const archivoRef = useRef<HTMLInputElement>(null);
@@ -418,7 +422,7 @@ export function AsistentePage() {
         title="Herramientas"
         open={pilaAbierta}
         onClose={() => setPilaAbierta(false)}
-        width={ANCHO_DRAWER_PILA}
+        width={Math.min(ANCHO_DRAWER_PILA, window.innerWidth)}
         // El Drawer sólido de antd rompía con el resto del chrome de la app,
         // donde solo el Dock/TopBar flotan sobre vidrio (ver theme/glass.ts).
         // Este panel también flota sobre el contenido, así que hereda el
@@ -447,7 +451,7 @@ export function AsistentePage() {
           onAbrir={abrirHerramienta}
           onCerrar={cerrarHerramienta}
           // Dentro del Drawer no hay riel contraído: contraer es cerrar el cajón.
-          ancho={ANCHO_DRAWER_PILA - 48}
+          ancho={Math.min(ANCHO_DRAWER_PILA, window.innerWidth) - 48}
           colapsada={false}
           onColapsar={() => setPilaAbierta(false)}
         />

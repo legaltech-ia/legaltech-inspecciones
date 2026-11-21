@@ -408,7 +408,10 @@ function TarjetaCelula({ celula }: { celula: Celula }) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: P.texto }}>{celula.dominio}</p>
+        {/* El dominio es una sola palabra larga: sin esto no cabe en un telefono. */}
+        <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: P.texto, minWidth: 0, overflowWrap: 'anywhere' }}>
+          {celula.dominio}
+        </p>
         <span
           style={{
             display: 'inline-flex',
@@ -562,7 +565,7 @@ export function LandingPage() {
           style={{
             display: 'grid',
             gap: 64,
-            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))',
             alignItems: 'center',
             paddingTop: 48,
             paddingBottom: 48,
@@ -633,7 +636,7 @@ export function LandingPage() {
               style={{
                 marginTop: 32,
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
                 gap: 18,
               }}
             >
@@ -653,7 +656,7 @@ export function LandingPage() {
               padding: 'clamp(28px, 4vw, 48px)',
               display: 'grid',
               gap: 40,
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))',
               alignItems: 'center',
             }}
           >
@@ -720,7 +723,7 @@ export function LandingPage() {
                 marginTop: 36,
                 display: 'grid',
                 gap: 40,
-                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))',
                 alignItems: 'start',
               }}
             >
@@ -808,7 +811,7 @@ export function LandingPage() {
                 marginTop: 32,
                 display: 'grid',
                 gap: 28,
-                gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(420px, 100%), 1fr))',
               }}
             >
               {GARANTIAS.map(([titulo, texto]) => (
@@ -914,7 +917,7 @@ export function LandingPage() {
               style={{
                 marginTop: 40,
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
                 gap: 24,
               }}
             >
@@ -990,7 +993,7 @@ export function LandingPage() {
               padding: 'clamp(32px, 5vw, 56px)',
               display: 'grid',
               gap: 40,
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
               alignItems: 'start',
             }}
           >

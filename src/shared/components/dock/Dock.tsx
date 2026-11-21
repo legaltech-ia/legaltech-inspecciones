@@ -49,13 +49,31 @@ export function Dock() {
   const reducirTransparencia = usePrefersReducedTransparency();
   const location = useLocation();
   const navigate = useNavigate();
-  const { colapsado, toggle } = useDockStore();
+  const { colapsado, toggle, movilAbierto, cerrarMovil } = useDockStore();
 
-  const ancho = colapsado ? ANCHO_RIEL_COLAPSADO : ANCHO_RIEL;
+  // Abierto como cajon el riel va entero: un carril de 56 px con solo iconos
+  // no es lo que se pide al tocar el menu en un telefono.
+  const compacto = colapsado && !movilAbierto;
+  const ancho = compacto ? ANCHO_RIEL_COLAPSADO : ANCHO_RIEL;
 
   return (
+    <>
+    {movilAbierto && (
+      <div
+        className="dock-velo"
+        onClick={cerrarMovil}
+        aria-hidden
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 19,
+          background: 'rgba(15, 23, 42, 0.45)',
+        }}
+      />
+    )}
     <nav
       aria-label="Navegación principal"
+      className={movilAbierto ? 'dock dock--abierto' : 'dock'}
       style={{
         position: 'fixed',
         left: 0,
@@ -65,7 +83,7 @@ export function Dock() {
         zIndex: 20,
         display: 'flex',
         flexDirection: 'column',
-        padding: colapsado ? '14px 8px 18px' : '14px 10px 18px',
+        padding: compacto ? '14px 8px 18px' : '14px 10px 18px',
         overflowY: 'auto',
         overflowX: 'hidden',
         transition: 'width 200ms ease, padding 200ms ease',
@@ -77,7 +95,7 @@ export function Dock() {
       <div style={{ flex: 1 }}>
         {DOCK_SECTIONS.map((section, i) => (
           <div key={section.titulo || `grupo-${i}`} style={{ marginBottom: 10 }}>
-            {section.titulo && !colapsado && (
+            {section.titulo && !compacto && (
               <div
                 style={{
                   fontSize: TEXTO.nota,
@@ -93,18 +111,21 @@ export function Dock() {
                 {section.titulo}
               </div>
             )}
-            {section.titulo && colapsado && <div style={{ height: 16 }} />}
+            {section.titulo && compacto && <div style={{ height: 16 }} />}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {section.items.map((item) => (
                 <DockItemBoton
                   key={item.key}
                   icon={ICONOS_DOCK[item.iconKey]}
-                  label={colapsado ? '' : item.label}
-                  ayuda={colapsado ? item.label : item.ayuda}
+                  label={compacto ? '' : item.label}
+                  ayuda={compacto ? item.label : item.ayuda}
                   color={item.color}
                   destacado={item.destacado}
                   activo={esActiva(item.ruta, location.pathname)}
-                  onClick={() => navigate(item.ruta)}
+                  onClick={() => {
+                    navigate(item.ruta);
+                    cerrarMovil();
+                  }}
                 />
               ))}
             </div>
@@ -116,6 +137,7 @@ export function Dock() {
       <button
         onClick={toggle}
         title={colapsado ? 'Expandir menú' : 'Colapsar menú'}
+        className="solo-escritorio"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -138,5 +160,6 @@ export function Dock() {
         }
       </button>
     </nav>
+    </>
   );
 }
