@@ -8,8 +8,12 @@
  * de recursos y el área de trabajo del expediente— y cada una tenía su propia
  * copia de las mismas dos expresiones regulares.
  */
-const CASE_UPDATE_RE = /<case_update>([\s\S]*?)<\/case_update>/;
-const CASE_FILED_RE = /<case_filed>([\s\S]*?)<\/case_filed>/;
+// El objeto JSON ancla la captura: el agente nombra el marcador en la prosa
+// antes de emitirlo y sin el ancla se leía esa mención en vez del dato.
+const CASE_UPDATE_RE = /<case_update>\s*(\{[\s\S]*?\})\s*<\/case_update>/;
+const CASE_FILED_RE = /<case_filed>\s*(\{[\s\S]*?\})\s*<\/case_filed>/;
+/** La mención entre acentos graves, que no es marcador y no debe cortar el texto. */
+const MENCION_RE = /`<\/?case_(?:update|filed)>`/g;
 
 function leerMarcador<T>(texto: string, expresion: RegExp): T | null {
   const encontrado = expresion.exec(texto);
@@ -34,6 +38,7 @@ export const leerCaseFiled = <T>(texto: string): T | null => leerMarcador<T>(tex
  */
 export function limpiarMarcadores(texto: string): string {
   return texto
+    .replace(MENCION_RE, '')
     .replace(/<case_update>[\s\S]*?<\/case_update>/g, '')
     .replace(/<case_filed>[\s\S]*?<\/case_filed>/g, '')
     .replace(/<case_update>[\s\S]*/, '')

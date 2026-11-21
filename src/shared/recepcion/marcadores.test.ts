@@ -46,6 +46,25 @@ describe('limpiarMarcadores', () => {
   });
 });
 
+// El agente nombra el marcador antes de emitirlo ("emito el marcador
+// `<case_update>`"); anclado solo en las etiquetas, el lector se quedaba con esa
+// mención y el inspector perdía los datos y media frase.
+describe('el marcador nombrado en la prosa', () => {
+  const CON_MENCION =
+    'Listo. A continuación emito el marcador `<case_update>` con los datos. ' +
+    '<case_update>{"ciudad":"Medellin"}</case_update>';
+
+  it('no impide leer el marcador de verdad', () => {
+    expect(leerCaseUpdate<{ ciudad: string }>(CON_MENCION)).toEqual({ ciudad: 'Medellin' });
+  });
+
+  it('no se lleva por delante el texto que sigue', () => {
+    const visible = limpiarMarcadores(CON_MENCION);
+    expect(visible).toContain('con los datos');
+    expect(visible).not.toContain('Medellin');
+  });
+});
+
 describe('soloLoQueTrae', () => {
   it('un campo vacío del agente no pisa lo que ya hay escrito', () => {
     expect(soloLoQueTrae({ a: 'valor', b: '', c: null, d: undefined })).toEqual({ a: 'valor' });
