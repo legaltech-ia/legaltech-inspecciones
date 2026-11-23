@@ -23,6 +23,8 @@ export const ETAPAS_QUERELLA = [
 
 export const ETAPA_QUERELLA_ACTIVA: Record<EstadoQuerella, number> = {
   radicada: 0,
+  // Admitida sigue en la etapa de radicación: el trámite empieza al avocar.
+  admitida: 0,
   en_tramite: 0,
   audiencia_programada: 1,
   fallo_emitido: 2,
@@ -33,7 +35,7 @@ export const ETAPA_QUERELLA_ACTIVA: Record<EstadoQuerella, number> = {
   archivada: 4,
 };
 
-/** Los 9 EstadoQuerella, en el mismo orden declarativo de ETAPA_QUERELLA_ACTIVA — para el mapa navegable (Task 20). */
+/** Los 10 EstadoQuerella, en el mismo orden declarativo de ETAPA_QUERELLA_ACTIVA — para el mapa navegable (Task 20). */
 export const TODOS_LOS_ESTADOS_QUERELLA = Object.keys(ETAPA_QUERELLA_ACTIVA) as EstadoQuerella[];
 
 export const ETAPAS_QUEJA = [

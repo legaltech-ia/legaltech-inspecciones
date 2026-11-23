@@ -50,6 +50,12 @@ export interface TransicionQuerella {
  * procesal; este arreglo sólo añade la forma de grafo (de -> a).
  */
 export const TRANSICIONES_QUERELLA: ReadonlyArray<TransicionQuerella> = [
+  // Verificación de requisitos antes de avocar: el radicador reporta qué falta y el
+  // inspector admite, inadmite o requiere subsanación. Ver requisitos_admision en
+  // tipologias.yaml y la guía de la transición en maquinas-estado.yaml.
+  { de: 'radicada', a: 'admitida', evento: 'admisibilidad', label: 'Admitir la querella' },
+  { de: 'admitida', a: 'en_tramite', evento: 'avocar_conocimiento', label: 'Avocar conocimiento' },
+  { de: 'admitida', a: 'audiencia_programada', evento: 'programar_audiencia', label: 'Citar a audiencia pública' },
   { de: 'radicada', a: 'en_tramite', evento: 'avocar_conocimiento', label: 'Avocar conocimiento' },
   { de: 'radicada', a: 'audiencia_programada', evento: 'programar_audiencia', label: 'Citar a audiencia pública' },
   { de: 'en_tramite', a: 'audiencia_programada', evento: 'programar_audiencia', label: 'Citar a audiencia pública' },
@@ -74,7 +80,11 @@ export const TRANSICIONES_QUERELLA: ReadonlyArray<TransicionQuerella> = [
 
 export function siguientePaso(estado: EstadoQuerella): PasoFlujo {
   switch (estado) {
+    // Admitida y en trámite comparten el siguiente paso: citar a audiencia. Lo que
+    // cambia antes de admitir es que hay requisitos por verificar, y eso lo reporta
+    // el radicador con su norma — no esta función.
     case 'radicada':
+    case 'admitida':
     case 'en_tramite':
       return {
         mensaje: `Querella radicada. Profiera el auto que avoca conocimiento y cite a las partes a audiencia pública (${ARTICULOS.procesoVerbalAbreviado}).`,

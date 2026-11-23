@@ -3,6 +3,9 @@
 // valida contra este enum, solo guarda el string que legalcase recibe.
 export type EstadoQuerella =
   | 'radicada'
+  // Requisitos verificados: el inspector admitió. El radicador solo reporta qué ve
+  // cumplido y qué no (requisitos_admision en tipologias.yaml); no admite por él.
+  | 'admitida'
   | 'en_tramite'
   | 'audiencia_programada'
   | 'fallo_emitido'

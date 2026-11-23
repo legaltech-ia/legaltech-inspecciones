@@ -102,12 +102,12 @@ describe('genérico con datos de querella (Task 20) — prueba que no quedó nad
     expect(estadosAlcanzablesDesde('archivada', TRANSICIONES_QUERELLA).size).toBe(0);
   });
 
-  it('cubre los 9 EstadoQuerella y agrupa en 5 etapas sin perder ninguno', () => {
+  it('cubre los 10 EstadoQuerella y agrupa en 5 etapas sin perder ninguno', () => {
     const mapa = derivarEstadosFlujo(TODOS_LOS_ESTADOS_QUERELLA, 'radicada', [], TRANSICIONES_QUERELLA);
-    expect(Object.keys(mapa)).toHaveLength(9);
+    expect(Object.keys(mapa)).toHaveLength(10);
 
     const columnas = agruparEstadosPorEtapa(TODOS_LOS_ESTADOS_QUERELLA, ETAPA_QUERELLA_ACTIVA, 5);
     expect(columnas).toHaveLength(5);
-    expect(columnas.flat()).toHaveLength(9);
+    expect(columnas.flat()).toHaveLength(10);
   });
 });

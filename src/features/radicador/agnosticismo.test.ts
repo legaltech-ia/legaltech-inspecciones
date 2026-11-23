@@ -52,19 +52,18 @@ describe('el radicador no sabe de ninguna tipología', () => {
   });
 
   /**
-   * La skill `/radicar` se fue: no hablaba con la red, su prompt terminaba diciendo
-   * «No radicas nada» y citaba los arts. 231-233 y 223 en literales de TypeScript.
-   * El camino vivo es el agente del OKF más `POST /legal/recepcion`.
+   * Las skills del asistente SE QUEDAN. Borré la de radicación por citar normas en
+   * literales de TypeScript y David lo revirtió con una razón mejor: el chat general
+   * funciona bien con ellas, y romper algo que sirve para cumplir una regla es peor
+   * que la deuda que la regla evita.
    *
-   * El resto de `skills.ts` SIGUE citando normas en TypeScript, y eso es la misma
-   * migración que ya se hizo con los prompts del backend —llevarlos al OKF— pero del
-   * lado del frontend: trabajo propio, no de esta tarea. Lo que este test fija es que
-   * la de radicación no vuelva.
+   * Lo que sigue pendiente es llevar el TEXTO de sus prompts al OKF, igual que se hizo
+   * con los del backend, conservando el mecanismo. Este test solo fija que la skill
+   * existe, para que nadie la vuelva a borrar «por limpieza».
    */
-  it('la skill de radicación no vuelve a TypeScript', () => {
+  it('la skill de radicación sigue existiendo: el chat general la usa', () => {
     const skills = readFileSync(join(AQUI, '..', 'asistente', 'skills.ts'), 'utf8');
 
-    expect(skills).not.toContain('/radicar');
-    expect(skills).not.toMatch(/arts?\.\s*231/);
+    expect(skills).toContain("clave: '/radicar'");
   });
 });
