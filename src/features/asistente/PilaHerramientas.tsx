@@ -5,6 +5,7 @@ import { DocumentosExpediente } from '@/shared/documentos/DocumentosExpediente';
 import type { FilaProceso } from '@/shared/procesos/types';
 import { PALETA } from '@/theme/palette';
 import { ELEVACION } from '@/theme/theme';
+import { HerramientaRadicacion } from './HerramientaRadicacion';
 import { HERRAMIENTAS, motivoNoDisponible, type ClaveHerramienta, type Herramienta } from './herramientas';
 import { PanelDocumento, PanelMultas, PanelNorma } from './paneles';
 import { PanelContador, PanelEtapa, PanelGrafo } from './panelesCaso';
@@ -195,6 +196,8 @@ function Tarjeta({
 /** Mapa herramienta → lo que monta. Todo lo de acá ya existía en el repo. */
 function contenido(clave: ClaveHerramienta, caso: FilaProceso | null, artefacto: Props['artefacto']) {
   switch (clave) {
+    case 'radicar':
+      return <HerramientaRadicacion />;
     case 'documento':
       return <PanelDocumento artefacto={artefacto?.artefacto ?? null} titulo={artefacto?.titulo} />;
     case 'pruebas':

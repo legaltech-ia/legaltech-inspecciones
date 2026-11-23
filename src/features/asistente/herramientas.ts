@@ -2,6 +2,7 @@ import {
   BookOpen,
   CalendarClock,
   Calculator,
+  FilePlus2,
   FileText,
   FolderOpen,
   Network,
@@ -22,6 +23,7 @@ import { TIPOS_PROCESO, type TipoProceso } from '@/shared/procesos/types';
  */
 
 export type ClaveHerramienta =
+  | 'radicar'
   | 'documento'
   | 'pruebas'
   | 'documentos'
@@ -43,6 +45,14 @@ export interface Herramienta {
 }
 
 export const HERRAMIENTAS: readonly Herramienta[] = [
+  {
+    clave: 'radicar',
+    nombre: 'Radicar un asunto',
+    descripcion:
+      'Suelte los documentos: el agente los lee, propone la tipología y llena el formulario. Radica cuando usted guarda.',
+    icono: FilePlus2,
+    // Sin `requiereCaso` a propósito: radicar es lo que se hace cuando NO hay caso.
+  },
   {
     clave: 'documento',
     nombre: 'Documento generado',
