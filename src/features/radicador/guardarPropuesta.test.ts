@@ -41,7 +41,11 @@ const DESPACHO = { inspeccion: 'Inspección Primera', municipio: 'Ciudad de Prue
 function puertos(sobrescribe: Partial<PuertosGuardado> = {}): PuertosGuardado {
   return {
     crearCaso: vi.fn().mockResolvedValue({ id: 'caso-1', filingNumber: 'QUE-1', currentStateCode: 'radicada' }),
-    buscarPorRadicado: vi.fn().mockResolvedValue({ id: 'caso-1', filingNumber: 'QUE-2026-00102' }),
+    buscarPorRadicado: vi.fn().mockResolvedValue({
+      id: 'caso-1',
+      filingNumber: 'QUE-2026-00102',
+      caseMetadata: JSON.stringify({ hechos: 'ruido nocturno', direccionInmueble: 'Calle 1' }),
+    }),
     parchearCampos: vi.fn().mockResolvedValue(undefined),
     cambiarEstado: vi.fn().mockResolvedValue(undefined),
     reemplazarPartes: vi.fn().mockResolvedValue(undefined),
@@ -178,5 +182,80 @@ describe('guardar la propuesta del radicador', () => {
     ).rejects.toThrow(/despacho/i);
 
     expect(p.crearCaso).not.toHaveBeenCalled();
+  });
+
+  /**
+   * `PATCH /fields` con caseMetadata es sobrescritura, no parche, y `PUT /parties` es
+   * reemplazo completo. Adjuntar una apelacion borraba los hechos de la querella y sus
+   * querellante/querellado — de donde leen Mis procesos, el fallo y el seudonimizador.
+   */
+  it('adjuntar FUNDE los metadatos y no borra los que ya tenia el expediente', async () => {
+    const p = puertos();
+
+    await guardarPropuesta(p, {
+      propuesta: propuesta({
+        tipoSolicitud: 'apelacion',
+        radicadoReferenciado: 'QUE-2026-00102',
+        campos: { radicadoOrigen: 'QUE-2026-00102' },
+      }),
+      entrada: APELACION,
+      archivos: [],
+      despacho: DESPACHO,
+    });
+
+    const escrito = JSON.parse(
+      ((p.parchearCampos as ReturnType<typeof vi.fn>).mock.calls[0][1] as { caseMetadata: string })
+        .caseMetadata,
+    );
+    expect(escrito).toMatchObject({ hechos: 'ruido nocturno', direccionInmueble: 'Calle 1' });
+    expect(escrito).toMatchObject({ radicadoOrigen: 'QUE-2026-00102' });
+  });
+
+  it('adjuntar no reemplaza las partes del expediente destino', async () => {
+    const p = puertos();
+
+    await guardarPropuesta(p, {
+      propuesta: propuesta({
+        tipoSolicitud: 'apelacion',
+        radicadoReferenciado: 'QUE-2026-00102',
+        partes: [{ rol: 'apelante', tipoId: 'CC', numeroId: '9', nombre: 'Otro' }],
+      }),
+      entrada: APELACION,
+      archivos: [],
+      despacho: DESPACHO,
+    });
+
+    expect(p.reemplazarPartes).not.toHaveBeenCalled();
+  });
+
+  /** El estado del destino corre SU maquina, no la de la tipologia que se adjunta. */
+  it('adjuntar no mueve el estado del expediente destino', async () => {
+    const p = puertos();
+
+    await guardarPropuesta(p, {
+      propuesta: propuesta({
+        tipoSolicitud: 'apelacion',
+        radicadoReferenciado: 'QUE-2026-00102',
+        estadoSugerido: 'radicada',
+      }),
+      entrada: { ...APELACION, states: ['radicada'] },
+      archivos: [],
+      despacho: DESPACHO,
+    });
+
+    expect(p.cambiarEstado).not.toHaveBeenCalled();
+  });
+
+  it('devuelve a que expediente se adjunto, para que la pantalla lo pueda mostrar', async () => {
+    const p = puertos();
+
+    const r = await guardarPropuesta(p, {
+      propuesta: propuesta({ tipoSolicitud: 'apelacion', radicadoReferenciado: 'QUE-2026-00102' }),
+      entrada: APELACION,
+      archivos: [],
+      despacho: DESPACHO,
+    });
+
+    expect(r.filingNumber).toBe('QUE-2026-00102');
   });
 });

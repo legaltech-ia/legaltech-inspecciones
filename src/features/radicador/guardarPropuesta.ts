@@ -1,4 +1,10 @@
-import { buildCaseMetadata, type CaseParty, type CreateLegalCaseInput, type LegalCase } from '@/shared/legalCases/types';
+import {
+  buildCaseMetadata,
+  parseCaseMetadata,
+  type CaseParty,
+  type CreateLegalCaseInput,
+  type LegalCase,
+} from '@/shared/legalCases/types';
 import type { PropuestaRadicacion, TipologiaCatalogo } from '@/shared/catalogo/types';
 
 /**
@@ -38,13 +44,17 @@ export async function guardarPropuesta(
   puertos: PuertosGuardado,
   peticion: PeticionGuardado,
 ): Promise<ResultadoGuardado> {
-  const expediente =
-    peticion.entrada.filing === 'ATTACH'
-      ? await adjuntar(puertos, peticion)
-      : await crear(puertos, peticion);
+  const adjunta = peticion.entrada.filing === 'ATTACH';
+  const expediente = adjunta ? await adjuntar(puertos, peticion) : await crear(puertos, peticion);
 
-  await aplicarEtapa(puertos, peticion, expediente.caseId);
-  await aplicarPartes(puertos, peticion, expediente.caseId);
+  // Sobre un expediente que ya existe NO se toca ni su estado ni sus partes. El estado
+  // corre la máquina del destino, no la de lo que se adjunta; y `PUT /parties` es
+  // reemplazo completo, así que escribir ahí borraría las partes ya registradas —de
+  // donde leen Mis procesos, el encabezado del documento y el seudonimizador—.
+  if (!adjunta) {
+    await aplicarEtapa(puertos, peticion, expediente.caseId);
+    await aplicarPartes(puertos, peticion, expediente.caseId);
+  }
   await subirTodo(puertos, peticion, expediente.caseId);
 
   return expediente;
@@ -77,7 +87,13 @@ async function adjuntar(puertos: PuertosGuardado, peticion: PeticionGuardado): P
     );
   }
 
-  await puertos.parchearCampos(caso.id, { caseMetadata: metadatos(peticion) });
+  // FUNDIR, no sobrescribir: `PATCH /fields` con caseMetadata es escritura escalar, así
+  // que mandar solo lo nuevo borraría los hechos y la dirección que el expediente ya
+  // tenía. Lo nuevo gana sobre la clave repetida; el resto se conserva.
+  const yaTenia = parseCaseMetadata<Record<string, unknown>>(caso.caseMetadata ?? null);
+  const fundido = { ...yaTenia, ...JSON.parse(metadatos(peticion)) };
+
+  await puertos.parchearCampos(caso.id, { caseMetadata: buildCaseMetadata(fundido) });
   return { caseId: caso.id, filingNumber: caso.filingNumber ?? null, modo: 'ATTACH' };
 }
 

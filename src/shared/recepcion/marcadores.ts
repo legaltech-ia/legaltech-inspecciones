@@ -27,7 +27,26 @@ function leerMarcador<T>(texto: string, expresion: RegExp): T | null {
   }
 }
 
-export const leerCaseUpdate = <T>(texto: string): T | null => leerMarcador<T>(texto, CASE_UPDATE_RE);
+/**
+ * El `<case_update>` del agente, con `campos` aplanado al nivel de arriba.
+ *
+ * El marcador pasó de claves fijas a un `campos` genérico que declara el catálogo del
+ * cerebro, y los lectores que ya existían —la ficha del intake, la del recurso y la
+ * extracción del área de trabajo— seguían leyendo las claves arriba. Aplanar aquí los
+ * recupera en un solo sitio: lo de `campos` sube, y lo que el marcador trae arriba
+ * (tipoSolicitud, partes, estadoSugerido, radicadoReferenciado, requisitos) gana si se
+ * repite, porque es lo que el protocolo define.
+ */
+export const leerCaseUpdate = <T>(texto: string): T | null => {
+  const bruto = leerMarcador<Record<string, unknown>>(texto, CASE_UPDATE_RE);
+  if (!bruto) return null;
+  const campos = bruto.campos;
+  return (
+    campos && typeof campos === 'object' && !Array.isArray(campos)
+      ? { ...(campos as Record<string, unknown>), ...bruto }
+      : bruto
+  ) as T;
+};
 
 export const leerCaseFiled = <T>(texto: string): T | null => leerMarcador<T>(texto, CASE_FILED_RE);
 

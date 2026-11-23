@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { HerramientaRadicacion } from '@/features/asistente/HerramientaRadicacion';
 import { IntakePage } from '@/features/intake/IntakePage';
 import { useCaseTypeCatalog } from '@/shared/catalogo/api';
-import { RadicarDocumentoPage } from './RadicarDocumentoPage';
 import { SelectorTipoRadicacion } from './SelectorTipoRadicacion';
 
 /**
@@ -33,8 +33,15 @@ export function RadicadorPage() {
     <SelectorTipoRadicacion tipologias={tipologias} tipo={elegida.key} onChange={setTipo} />
   );
 
+  // Lo que se adjunta va al camino genérico, que resuelve el expediente destino y le
+  // funde los datos. La página de recurso creaba un expediente NUEVO con un tipo fijo,
+  // así que elegir una tipología distinta de ella abría un expediente del tipo
+  // equivocado en vez de adjuntar nada.
   return elegida.filing === 'ATTACH' ? (
-    <RadicarDocumentoPage key={elegida.key} selector={selector} />
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 12, padding: 12 }}>
+      <HerramientaRadicacion key={elegida.key} />
+      <aside>{selector}</aside>
+    </div>
   ) : (
     <IntakePage key={elegida.key} selector={selector} />
   );

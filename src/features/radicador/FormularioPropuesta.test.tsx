@@ -97,4 +97,33 @@ describe('formulario de la propuesta de radicación', () => {
 
     expect(screen.getByRole('alert').textContent).toMatch(/catálogo/i);
   });
+
+  /**
+   * Adjuntar al expediente equivocado cuesta mas de deshacer que crear uno de mas, asi
+   * que el radicado al que se va a adjuntar es LO QUE MAS tiene que ver el inspector.
+   */
+  it('una tipologia que se adjunta muestra el radicado destino, y se puede corregir', () => {
+    const onCambio = vi.fn();
+    render(
+      <FormularioPropuesta
+        catalogo={CATALOGO}
+        propuesta={{ ...propuesta('apelacion'), radicadoReferenciado: 'QUE-2026-00102' }}
+        onCambio={onCambio}
+      />,
+    );
+
+    const destino = screen.getByLabelText('Expediente al que se adjunta') as HTMLInputElement;
+    expect(destino.value).toBe('QUE-2026-00102');
+
+    fireEvent.change(destino, { target: { value: 'QUE-2026-00103' } });
+    expect(onCambio).toHaveBeenCalledWith(
+      expect.objectContaining({ radicadoReferenciado: 'QUE-2026-00103' }),
+    );
+  });
+
+  it('una tipologia que abre expediente no pide radicado destino', () => {
+    render(<FormularioPropuesta catalogo={CATALOGO} propuesta={propuesta('querella')} onCambio={vi.fn()} />);
+
+    expect(screen.queryByLabelText('Expediente al que se adjunta')).toBeNull();
+  });
 });

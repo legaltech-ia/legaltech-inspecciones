@@ -64,6 +64,26 @@ export function FormularioPropuesta({ catalogo, propuesta, onCambio, error }: Fo
 
       {tipologia && <Encabezado tipologia={tipologia} />}
 
+      {tipologia?.filing === 'ATTACH' && (
+        <>
+          {/* Lo que MÁS tiene que ver el inspector: adjuntar al expediente equivocado
+              cuesta más de deshacer que crear uno de más. El agente solo reporta el
+              radicado que leyó en el documento; aquí se corrige. */}
+          <label style={estilos.etiqueta} htmlFor="radicadoReferenciado">
+            Expediente al que se adjunta
+          </label>
+          <input
+            id="radicadoReferenciado"
+            type="text"
+            style={{ ...estilos.control, ...estilos.controlDestino }}
+            value={propuesta.radicadoReferenciado ?? ''}
+            data-origen={propuesta.radicadoReferenciado ? 'ia' : 'inspector'}
+            placeholder="Radicado del expediente que ya existe"
+            onChange={(e) => onCambio({ ...propuesta, radicadoReferenciado: e.target.value || null })}
+          />
+        </>
+      )}
+
       {tipologia?.fields.map((campo) => (
         <Campo
           key={campo.key}
@@ -152,6 +172,8 @@ const estilos = {
   },
   // Lo que llenó la IA se ve distinto: es lo que el inspector tiene que revisar.
   controlIa: { borderColor: PALETA.azul, background: PALETA.azulSuave },
+  // El destino se ve distinto del resto: es lo que no se puede deshacer facil.
+  controlDestino: { borderColor: PALETA.morado, background: PALETA.moradoBg, fontWeight: 600 },
   nota: { fontSize: TEXTO.menor, color: PALETA.textoSuave, margin: '2px 0 6px' },
   aviso: {
     fontSize: TEXTO.base,
