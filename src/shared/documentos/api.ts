@@ -44,19 +44,28 @@ export function useCaseDocuments(caseId: string) {
   });
 }
 
-/** Sube el archivo a S3 (legaltech-tools) y registra la ficha en legalcase, en un solo paso. */
+/**
+ * Sube el archivo a S3 (legaltech-tools) y registra la ficha en legalcase, en un solo paso.
+ *
+ * Está fuera del hook porque el radicador sube a un `caseId` que acaba de conocer —lo
+ * devolvió el alta—, y un hook parametrizado por `caseId` no se puede llamar con uno
+ * que todavía no existía al renderizar.
+ */
+export async function subirDocumento(caseId: string, archivo: File) {
+  const body = new FormData();
+  body.append('file', archivo, archivo.name);
+  const dto = await apiFetch<CaseDocumentDTO>(`/tools/expedientes/${caseId}/documents`, {
+    method: 'POST',
+    body,
+  });
+  return toCaseDocument(dto);
+}
+
+/** El mismo paso, para una pantalla que ya tiene su expediente abierto. */
 export function useUploadCaseDocument(caseId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (archivo: File) => {
-      const body = new FormData();
-      body.append('file', archivo, archivo.name);
-      const dto = await apiFetch<CaseDocumentDTO>(`/tools/expedientes/${caseId}/documents`, {
-        method: 'POST',
-        body,
-      });
-      return toCaseDocument(dto);
-    },
+    mutationFn: (archivo: File) => subirDocumento(caseId, archivo),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: documentsKeys.byCase(caseId) });
     },
