@@ -1,4 +1,4 @@
-import { BookOpen, FileCheck2, FileSearch, FileText, Gavel, Inbox, Scale, type LucideIcon } from 'lucide-react';
+import { BookOpen, FileCheck2, FileSearch, FileText, Gavel, Scale, type LucideIcon } from 'lucide-react';
 import { actaFirmezaComoDocumento, generarActaFirmeza } from '@/derecho/plantillas/actaFirmeza';
 import { generarFalloComparendo, type VarianteFallo } from '@/derecho/plantillas/falloComparendo';
 import type { DocumentoLegal } from '@/derecho/plantillas/documentoLegal';
@@ -20,7 +20,6 @@ import type { CausalIncremento, TipoMulta } from '@/derecho/multas';
  */
 
 export type ClaveSkill =
-  | '/radicar'
   | '/fallo-querella'
   | '/fallo-queja'
   | '/acta-firmeza'
@@ -319,31 +318,6 @@ function proyectoActaFirmeza(entrada: EntradaSkill): Artefacto {
 
 export const SKILLS: readonly Skill[] = [
   {
-    clave: '/radicar',
-    nombre: 'Radicar un asunto',
-    descripcion: 'Determina si es queja, querella o apelación y reúne los datos mínimos.',
-    icono: Inbox,
-    campos: [
-      { etiqueta: 'Qué ocurrió', ayuda: 'el relato tal como lo trae el ciudadano' },
-      { etiqueta: 'Fecha de los hechos', ayuda: 'AAAA-MM-DD' },
-      { etiqueta: 'Quién solicita', ayuda: 'nombre e identificación' },
-      { etiqueta: 'Contra quién', ayuda: 'nombre e identificación, o lo que se sepa' },
-      { etiqueta: 'Dirección o lugar de los hechos' },
-      { etiqueta: 'Pruebas que aporta' },
-      { etiqueta: 'Documento que se recurre', ayuda: 'solo si viene a apelar: número y fecha' },
-    ],
-    construirPrompt: (e) =>
-      construir(
-        [
-          'Tarea: recibir un asunto en ventanilla y determinar por cuál vía se radica: queja (mediación o conciliación, arts. 231 a 233), querella (proceso verbal abreviado, art. 223) o apelación de una decisión ya proferida (art. 223 núm. 4).',
-          'Responde en este orden, que es el del trámite: 1) qué tipo de asunto es y por qué, citando el artículo que lo sustenta; si los hechos no alcanzan para decidirlo, dilo y pregunta exactamente lo que falta; 2) proceso y fecha — hechos, fecha y lugar, y si el término para recurrir sigue corriendo cuando se trate de apelación; 3) partes, con la identificación que se necesita de cada una; 4) pruebas que aporta y las que convendría pedir desde ya; 5) orientación: qué sigue en el despacho y en qué término.',
-          'Cierra con la lista de los datos que el ciudadano no aportó y sin los cuales la radicación queda incompleta.',
-          'No radicas nada: preparas la radicación. No afirmes que el asunto quedó registrado ni le asignes un número de radicado.',
-        ],
-        e,
-      ),
-  },
-  {
     clave: '/fallo-querella',
     nombre: 'Proyectar fallo de querella',
     descripcion: 'Proceso verbal abreviado: partes, pruebas y sentido de la decisión.',
@@ -476,7 +450,6 @@ export const SKILLS: readonly Skill[] = [
 
 /** Las cuatro que se ofrecen como sugerencia en el estado vacío del chat. */
 export const SKILLS_SUGERIDAS: readonly ClaveSkill[] = [
-  '/radicar',
   '/fallo-querella',
   '/acta-firmeza',
   '/norma',

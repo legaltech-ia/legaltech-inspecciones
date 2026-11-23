@@ -1,78 +1,74 @@
-import { TIPOS_RADICACION, type TipoRadicacion } from './tipoRadicacion';
+import { FileText, Paperclip } from 'lucide-react';
 import { PALETA } from '@/theme/theme';
 import { TEXTO } from '@/theme/escala';
+import type { TipologiaCatalogo } from '@/shared/catalogo/types';
 
 /**
- * Selector de tipo de radicación: los 4 iconos reciclados en pequeño, arriba de
- * la ficha. Al elegir uno, el chat y los campos de la derecha cambian al tipo.
+ * Lo que este despacho radica, según el catálogo de su cerebro.
+ *
+ * No trae lista propia: antes declaraba tres tipologías en TypeScript y había que
+ * tocar este fichero para que una oficina nueva pudiera radicar lo suyo.
+ *
+ * El icono y el color se eligen por el MODO de guardado —abre expediente o se adjunta
+ * a uno— y no por la tipología: eso es presentación de un rol, no del dominio.
  */
 export function SelectorTipoRadicacion({
+  tipologias,
   tipo,
   onChange,
 }: {
-  tipo: TipoRadicacion;
-  onChange: (t: TipoRadicacion) => void;
+  tipologias: TipologiaCatalogo[];
+  tipo: string | null;
+  onChange: (tipo: string) => void;
 }) {
   return (
-    <div>
-      <div
-        style={{
-          fontSize: TEXTO.nota,
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          color: PALETA.textoTenue,
-          marginBottom: 8,
-        }}
-      >
-        Tipo de radicación
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-        {TIPOS_RADICACION.map((t) => {
-          const activo = t.tipo === tipo;
-          return (
-            <button
-              key={t.tipo}
-              onClick={() => onChange(t.tipo)}
-              aria-pressed={activo}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 9,
-                padding: '9px 11px',
-                borderRadius: 14,
-                border: `1px solid ${activo ? t.color : 'transparent'}`,
-                background: activo ? t.fondo : '#f6f7f9',
-                color: activo ? t.color : PALETA.textoSuave,
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'background 0.2s ease, border-color 0.2s ease, color 0.2s ease',
-                fontWeight: activo ? 600 : 500,
-                fontSize: TEXTO.menor,
-              }}
-            >
-              <span
-                style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: 9,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: activo ? '#ffffff' : '#eceef1',
-                  color: t.color,
-                  fontSize: TEXTO.base,
-                  flexShrink: 0,
-                }}
-              >
-                {t.icono}
-              </span>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {t.titulo}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <nav aria-label="Tipo de radicación" style={estilos.lista}>
+      {tipologias.map((entrada) => {
+        const estilo = APARIENCIA[entrada.filing];
+        const activo = entrada.key === tipo;
+        return (
+          <button
+            key={entrada.key}
+            type="button"
+            aria-pressed={activo}
+            onClick={() => onChange(entrada.key)}
+            style={{
+              ...estilos.opcion,
+              borderColor: activo ? estilo.color : PALETA.borde,
+              background: activo ? estilo.fondo : PALETA.superficie,
+            }}
+          >
+            <estilo.Icono size={16} color={estilo.color} aria-hidden />
+            <span style={estilos.titulo}>{entrada.label}</span>
+            <span style={estilos.pie}>
+              {entrada.filing === 'ATTACH' ? 'Se adjunta' : 'Abre expediente'}
+            </span>
+          </button>
+        );
+      })}
+    </nav>
   );
 }
+
+const APARIENCIA = {
+  CREATE: { Icono: FileText, color: PALETA.azul, fondo: PALETA.azulBg },
+  ATTACH: { Icono: Paperclip, color: PALETA.morado, fondo: PALETA.moradoBg },
+} as const;
+
+const estilos = {
+  lista: { display: 'grid', gap: 6 },
+  opcion: {
+    display: 'grid',
+    gridTemplateColumns: 'auto 1fr',
+    gridTemplateAreas: '"icono titulo" "icono pie"',
+    alignItems: 'center',
+    gap: '0 8px',
+    padding: '6px 8px',
+    border: '1px solid',
+    borderRadius: 6,
+    cursor: 'pointer',
+    textAlign: 'left' as const,
+  },
+  titulo: { gridArea: 'titulo', fontSize: TEXTO.base, fontWeight: 600, color: PALETA.texto },
+  pie: { gridArea: 'pie', fontSize: TEXTO.nota, color: PALETA.textoSuave },
+} as const;
