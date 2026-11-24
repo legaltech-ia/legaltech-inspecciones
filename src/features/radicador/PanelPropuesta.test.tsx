@@ -41,7 +41,7 @@ function proponer(propuesta: Partial<PropuestaRadicacion>, documentos: string[] 
 afterEach(cleanup);
 beforeEach(() => {
   guardar.mockReset();
-  guardar.mockResolvedValue({ caseId: 'caso-1', filingNumber: 'QUE-2026-00111', modo: 'CREATE' });
+  guardar.mockResolvedValue({ caseId: 'caso-1', filingNumber: 'QUE-2026-00111', modo: 'CREATE', incidencias: [] });
   useAuth.setState({ usuario: { id: 'inspector-1', nombre: 'A.', rol: 'inspector', despacho: 'd1' } });
   localStorage.clear();
   useBorradorRadicacion.getState().limpiar();
@@ -131,5 +131,27 @@ describe('el panel de la propuesta', () => {
     render(<PanelPropuesta archivos={[]} />);
 
     expect(screen.getByText(/sin personas identificadas/i)).toBeDefined();
+  });
+
+  /**
+   * El expediente existe; lo que fallo fue colgarle algo. Si no se dice, el inspector
+   * cree que no se guardo nada y radica el mismo asunto otra vez.
+   */
+  it('si el expediente quedo creado pero algo fallo, lo dice con el radicado', async () => {
+    guardar.mockResolvedValue({
+      caseId: 'caso-1',
+      filingNumber: 'QUE-2026-00111',
+      modo: 'CREATE',
+      incidencias: ['No se pudo registrar el documento escrito.pdf: el almacen no responde.'],
+    });
+    proponer({ tipoSolicitud: 'querella', campos: { asunto: 'Ruido' } });
+    render(<PanelPropuesta archivos={[]} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /guardar/i }));
+
+    const estado = await screen.findByRole('status');
+    expect(estado.textContent).toMatch(/QUE-2026-00111/);
+    expect(estado.textContent).toMatch(/escrito\.pdf/);
+    expect(estado.textContent).not.toMatch(/no vuelva a radicar/i);
   });
 });

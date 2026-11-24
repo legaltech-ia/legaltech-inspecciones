@@ -43,7 +43,7 @@ afterEach(cleanup);
 beforeEach(() => {
   pedirRecepcion.mockReset();
   guardar.mockReset();
-  guardar.mockResolvedValue({ caseId: 'caso-1', filingNumber: 'QUE-1', modo: 'CREATE' });
+  guardar.mockResolvedValue({ caseId: 'caso-1', filingNumber: 'QUE-1', modo: 'CREATE', incidencias: [] });
   // El borrador se guarda por inspector autenticado: sin usuario no se escribe nada.
   useAuth.setState({ usuario: { id: 'inspector-1', nombre: 'A.', rol: 'inspector', despacho: 'd1' } });
   localStorage.clear();

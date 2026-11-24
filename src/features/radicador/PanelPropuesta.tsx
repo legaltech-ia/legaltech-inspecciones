@@ -22,6 +22,7 @@ export function PanelPropuesta({ archivos }: { archivos: File[] }) {
   const catalogo = useCaseTypeCatalog();
   const guardar = useGuardarPropuesta();
   const [radicado, setRadicado] = useState<string | null>(null);
+  const [incidencias, setIncidencias] = useState<string[]>([]);
   const [fallo, setFallo] = useState<string | null>(null);
 
   const entrada = resolverTipologia(catalogo.data, propuesta?.tipoSolicitud);
@@ -34,9 +35,20 @@ export function PanelPropuesta({ archivos }: { archivos: File[] }) {
   // que el expediente existe, y borrarla de la pantalla al guardar es cruel.
   if (radicado) {
     return (
-      <p role="status" style={estilos.prosa}>
-        Radicado {radicado}. El expediente y sus documentos ya están en el sistema.
-      </p>
+      <div role="status" style={estilos.panel}>
+        <p style={estilos.prosa}>
+          Radicado {radicado}.{' '}
+          {incidencias.length === 0
+            ? 'El expediente y sus documentos ya están en el sistema.'
+            : 'El expediente ya existe, pero quedó algo pendiente:'}
+        </p>
+        {/* El expediente YA existe: lo que falta se completa sobre él, no se radica otra vez. */}
+        {incidencias.map((incidencia) => (
+          <p key={incidencia} style={estilos.error}>
+            {incidencia}
+          </p>
+        ))}
+      </div>
     );
   }
 
@@ -48,6 +60,7 @@ export function PanelPropuesta({ archivos }: { archivos: File[] }) {
     try {
       const hecho = await guardar.mutateAsync({ propuesta, entrada, archivos });
       setRadicado(hecho.filingNumber ?? hecho.caseId);
+      setIncidencias(hecho.incidencias);
       // Ya está radicado: dejarlo como borrador lo ofrecería otra vez al recargar.
       limpiar();
     } catch (e) {

@@ -287,4 +287,62 @@ describe('guardar la propuesta del radicador', () => {
 
     expect(r.filingNumber).toBe('QUE-2026-00102');
   });
+
+  /**
+   * El expediente se crea primero y luego se le cuelgan estado, partes y documentos.
+   * Si algo de eso falla, el expediente YA existe: si el inspector solo ve un error,
+   * vuelve a pulsar guardar y abre un segundo expediente del mismo asunto.
+   */
+  describe('cuando algo falla despues de crear el expediente', () => {
+    it('devuelve el radicado igual, y dice que fallo', async () => {
+      const p = puertos({
+        subirDocumento: vi.fn().mockRejectedValue(new Error('el almacen no responde')),
+      });
+
+      const hecho = await guardarPropuesta(p, {
+        propuesta: propuesta(),
+        entrada: QUERELLA,
+        archivos: [new File(['x'], 'escrito.pdf')],
+        despacho: DESPACHO,
+      });
+
+      expect(hecho.filingNumber).toBe('QUE-1');
+      expect(hecho.incidencias.join(' ')).toMatch(/escrito\.pdf/);
+    });
+
+    it('las partes que no se pudieron registrar se dicen, no se tragan', async () => {
+      const p = puertos({
+        reemplazarPartes: vi.fn().mockRejectedValue(new Error('legalcase dice que no')),
+      });
+
+      const hecho = await guardarPropuesta(p, {
+        propuesta: propuesta({ partes: [{ rol: 'querellante', nombre: 'A. Pérez', tipoId: null, numeroId: null }] }),
+        entrada: QUERELLA,
+        archivos: [],
+        despacho: DESPACHO,
+      });
+
+      expect(hecho.incidencias.join(' ')).toMatch(/personas/i);
+    });
+
+    it('un expediente que sale limpio no reporta incidencias', async () => {
+      const hecho = await guardarPropuesta(puertos(), {
+        propuesta: propuesta(),
+        entrada: QUERELLA,
+        archivos: [],
+        despacho: DESPACHO,
+      });
+
+      expect(hecho.incidencias).toEqual([]);
+    });
+
+    /** Si lo que falla es la creacion, no hay expediente: eso si se propaga. */
+    it('si no se pudo crear el expediente, el error llega al inspector', async () => {
+      const p = puertos({ crearCaso: vi.fn().mockRejectedValue(new Error('legalcase caido')) });
+
+      await expect(
+        guardarPropuesta(p, { propuesta: propuesta(), entrada: QUERELLA, archivos: [], despacho: DESPACHO }),
+      ).rejects.toThrow(/caido/);
+    });
+  });
 });

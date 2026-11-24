@@ -38,6 +38,15 @@ export interface ResultadoGuardado {
   caseId: string;
   filingNumber: string | null;
   modo: TipologiaCatalogo['filing'];
+  /**
+   * Lo que no se pudo colgar del expediente ya creado.
+   *
+   * El expediente se crea primero y luego se le añaden estado, partes y documentos.
+   * Si algo de eso falla y el inspector solo ve un error, vuelve a pulsar guardar y
+   * abre un segundo expediente del mismo asunto: el radicado se devuelve igual, con
+   * la lista de lo que quedó pendiente.
+   */
+  incidencias: string[];
 }
 
 export async function guardarPropuesta(
@@ -45,32 +54,55 @@ export async function guardarPropuesta(
   peticion: PeticionGuardado,
 ): Promise<ResultadoGuardado> {
   const adjunta = peticion.entrada.filing === 'ATTACH';
+  // Lo que falle a partir de aquí NO se propaga: el expediente ya existe, y un error
+  // a secas hace que el inspector lo radique otra vez.
   const expediente = adjunta ? await adjuntar(puertos, peticion) : await crear(puertos, peticion);
+  const incidencias: string[] = [];
 
   // Sobre un expediente que ya existe NO se toca ni su estado ni sus partes. El estado
   // corre la máquina del destino, no la de lo que se adjunta; y `PUT /parties` es
   // reemplazo completo, así que escribir ahí borraría las partes ya registradas —de
   // donde leen Mis procesos, el encabezado del documento y el seudonimizador—.
   if (!adjunta) {
-    await aplicarEtapa(puertos, peticion, expediente.caseId);
-    await aplicarPartes(puertos, peticion, expediente.caseId);
+    await sinTumbar(incidencias, 'la etapa del expediente', () =>
+      aplicarEtapa(puertos, peticion, expediente.caseId),
+    );
+    await sinTumbar(incidencias, 'las personas del expediente', () =>
+      aplicarPartes(puertos, peticion, expediente.caseId),
+    );
   }
-  await subirTodo(puertos, peticion, expediente.caseId);
+  for (const archivo of peticion.archivos) {
+    await sinTumbar(incidencias, `el documento ${archivo.name}`, () =>
+      puertos.subirDocumento(expediente.caseId, archivo),
+    );
+  }
 
-  return expediente;
+  return { ...expediente, incidencias };
 }
 
-async function crear(puertos: PuertosGuardado, peticion: PeticionGuardado): Promise<ResultadoGuardado> {
+/** Deja constancia de lo que no se pudo hacer, en vez de tumbar el guardado entero. */
+async function sinTumbar(incidencias: string[], que: string, intento: () => Promise<unknown>) {
+  try {
+    await intento();
+  } catch (error) {
+    incidencias.push(`No se pudo registrar ${que}: ${error instanceof Error ? error.message : 'error'}.`);
+  }
+}
+
+async function crear(puertos: PuertosGuardado, peticion: PeticionGuardado): Promise<Expediente> {
   const caso = await puertos.crearCaso(entradaDeCreacion(peticion));
   return { caseId: caso.id, filingNumber: caso.filingNumber ?? null, modo: 'CREATE' };
 }
+
+/** El expediente resuelto, antes de saber qué se le pudo colgar. */
+type Expediente = Omit<ResultadoGuardado, 'incidencias'>;
 
 /**
  * El agente no consulta la base: solo reporta el radicado que leyó en el documento.
  * Resolverlo es de este lado, y si no resuelve se dice — adjuntar al expediente
  * equivocado cuesta más de deshacer que crear uno de más.
  */
-async function adjuntar(puertos: PuertosGuardado, peticion: PeticionGuardado): Promise<ResultadoGuardado> {
+async function adjuntar(puertos: PuertosGuardado, peticion: PeticionGuardado): Promise<Expediente> {
   const radicado = peticion.propuesta.radicadoReferenciado?.trim();
   if (!radicado) {
     throw new Error(
@@ -164,11 +196,5 @@ async function aplicarPartes(puertos: PuertosGuardado, peticion: PeticionGuardad
 
   if (partes.length > 0) {
     await puertos.reemplazarPartes(caseId, partes);
-  }
-}
-
-async function subirTodo(puertos: PuertosGuardado, peticion: PeticionGuardado, caseId: string) {
-  for (const archivo of peticion.archivos) {
-    await puertos.subirDocumento(caseId, archivo);
   }
 }
