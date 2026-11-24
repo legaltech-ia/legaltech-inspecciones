@@ -1,5 +1,6 @@
 import { useLegalCases, useLegalCase } from '@/shared/legalCases/api';
 import { parseCaseMetadata, type LegalCase } from '@/shared/legalCases/types';
+import { descripcionActuacion, tituloActuacion } from '@/shared/legalCases/historial';
 import type {
   ActuacionQueja,
   CategoriaQueja,
@@ -53,8 +54,8 @@ function legalCaseToQueja(caso: LegalCase): QuejaDetalle {
         id: `${caso.id}-${i}`,
         fecha: h.changedAt,
         tipo: tipoActuacion(h.stateCode),
-        titulo: h.stateName ?? h.reason ?? h.stateCode ?? 'Actuación',
-        descripcion: h.stateName ? (h.reason ?? undefined) : undefined,
+        titulo: tituloActuacion(h),
+        descripcion: descripcionActuacion(h),
       }),
     ),
     caseMetadataRaw: caso.caseMetadata,

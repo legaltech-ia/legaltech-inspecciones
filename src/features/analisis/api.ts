@@ -1,4 +1,5 @@
 import { apiFetch, contextHeaders } from '@/shared/api/client';
+import type { CaseParty } from '@/shared/legalCases/types';
 import type { ParteExtraida } from '@/features/querellas/partesExtraidas';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
@@ -56,14 +57,9 @@ export async function resumirDocumento(req: {
 
 // ── Caso / expediente / fallo ──────────────────────────────────────────
 
-export interface CaseParty {
-  /** Ordena el índice de seudónimos y DEBE coincidir con el del backend — ver rehidratar.ts. */
-  id?: string;
-  partyRole: string;
-  identificationType: string;
-  identificationNumber: string;
-  fullName: string;
-}
+// Una sola definición de parte: dos interfaces paralelas ya dejaron caer el id por el
+// camino, y sin id no hay rehidratación (ver rehidratar.ts).
+export type { CaseParty };
 
 export interface CaseBackground {
   allegedFacts: string;

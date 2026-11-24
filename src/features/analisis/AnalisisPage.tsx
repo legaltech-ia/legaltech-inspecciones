@@ -277,7 +277,17 @@ export function AnalisisPage({
           // Proyección a case_parties: sin ella el expediente sigue apareciendo
           // como "No identificado" en Mis procesos y el seudonimizador del
           // servicio legal no tiene a quién tapar en la siguiente pasada.
-          reemplazarPartes.mutate({ id: casoId, parties: aCaseParties(fusionadas) });
+          // Cada reemplazo borra e inserta las filas: legalcase (IDENTITY) les da ids
+          // nuevos. Si el expediente en memoria se queda con los viejos, la siguiente
+          // pasada rehidrata [PARTE_1] con el nombre de la otra persona dentro de un
+          // fallo firmado. El endpoint ya devuelve las partes con sus ids: se adoptan.
+          reemplazarPartes.mutate(
+            { id: casoId, parties: aCaseParties(fusionadas) },
+            {
+              onSuccess: (conPartes) =>
+                setCaso((prev) => (prev ? { ...prev, parties: conPartes.parties ?? [] } : prev)),
+            },
+          );
           message.info(
             `Datos del proceso extraídos de los documentos: ${propuestos.join(', ')}. Verifíquelos en la ficha antes de proferir.`,
           );

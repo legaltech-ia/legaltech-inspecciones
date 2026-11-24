@@ -26,6 +26,20 @@ describe('mapaDeSeudonimos', () => {
     expect(alReves.get('[PARTE_1]')).toBe('Primera Persona');
   });
 
+  /**
+   * El backend ordena con `String.compareTo`, así que «10» va antes que «9». Si aquí se
+   * ordenara por número, [PARTE_1] nombraría a la otra persona en un fallo firmado.
+   */
+  it('ordena como el backend cuando los ids cruzan el salto de dígito', () => {
+    const mapa = mapaDeSeudonimos([
+      parte('9', 'Primera Persona Ficticia', '0000001'),
+      parte('10', 'Segunda Persona Ficticia', '0000002'),
+    ]);
+    expect(mapa.get('[PARTE_1]')).toBe('Segunda Persona Ficticia');
+    expect(mapa.get('[ID_1]')).toBe('0000002');
+    expect(mapa.get('[PARTE_2]')).toBe('Primera Persona Ficticia');
+  });
+
   it('omite las partes sin nombre en vez de gastarles un índice', () => {
     const mapa = mapaDeSeudonimos([parte('1', '   ', '1000001'), parte('2', 'La Única', '1000002')]);
     expect(mapa.get('[PARTE_1]')).toBe('La Única');
