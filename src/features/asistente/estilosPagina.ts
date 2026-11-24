@@ -52,7 +52,7 @@ export const estilos: Record<string, React.CSSProperties> = {
     fontSize: 15,
     lineHeight: 1.7,
     color: PALETA.texto,
-    whiteSpace: 'pre-wrap',
+    // Sin pre-wrap: la respuesta se pinta como Markdown y los saltos ya los da el bloque.
     margin: '0 0 26px',
   },
   turnoInspector: {

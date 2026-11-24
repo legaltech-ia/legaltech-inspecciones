@@ -8,6 +8,7 @@ import { PROPUESTA_VACIA, type PropuestaRadicacion } from '@/shared/catalogo/typ
 import { FormularioPropuesta } from '@/features/radicador/FormularioPropuesta';
 import { useBorradorRadicacion } from '@/features/radicador/borradorStore';
 import { resolverTipologia } from '@/shared/catalogo/tipologia';
+import { Markdown } from '@/shared/ai/Markdown';
 import { useGuardarPropuesta } from '@/features/radicador/useGuardarPropuesta';
 
 /**
@@ -96,7 +97,11 @@ export function HerramientaRadicacion() {
         {leyendo ? 'Revisando…' : 'Revisar documentos'}
       </button>
 
-      {respuesta && <p style={estilos.prosa}>{respuesta}</p>}
+      {respuesta && (
+        <div style={estilos.prosa}>
+          <Markdown texto={respuesta} />
+        </div>
+      )}
       {fallo && (
         <p role="alert" style={estilos.error}>
           {fallo}

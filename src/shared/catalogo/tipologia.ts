@@ -25,6 +25,44 @@ export function resolverTipologia(
   const buscado = normalizar(propuesto);
   return (
     catalogo.find((entrada) => normalizar(entrada.key) === buscado) ??
-    catalogo.find((entrada) => normalizar(entrada.label) === buscado)
+    catalogo.find((entrada) => normalizar(entrada.label) === buscado) ??
+    porUnaLetra(catalogo, buscado)
   );
+}
+
+/**
+ * Último recurso: una sola letra de diferencia, y solo si una única tipología queda
+ * a esa distancia.
+ *
+ * Medido contra el modelo real: en 2 de cada 4 querellas devuelve `querrella`. Con
+ * un catálogo de cinco entradas distintas eso no es ambiguo, y la elegida se ve en
+ * el desplegable. Si hay dos candidatas, no se elige ninguna: adivinar la tipología
+ * es peor que preguntarla.
+ */
+function porUnaLetra(catalogo: TipologiaCatalogo[], buscado: string): TipologiaCatalogo | undefined {
+  const cerca = catalogo.filter(
+    (entrada) => aUnaEdicion(normalizar(entrada.key), buscado) || aUnaEdicion(normalizar(entrada.label), buscado),
+  );
+  return cerca.length === 1 ? cerca[0] : undefined;
+}
+
+/** Distancia de edición de exactamente uno: una letra cambiada, metida o quitada. */
+function aUnaEdicion(a: string, b: string): boolean {
+  if (Math.abs(a.length - b.length) > 1) return false;
+  const [corta, larga] = a.length <= b.length ? [a, b] : [b, a];
+
+  let i = 0;
+  let j = 0;
+  let diferencias = 0;
+  while (i < corta.length && j < larga.length) {
+    if (corta[i] === larga[j]) {
+      i += 1;
+      j += 1;
+      continue;
+    }
+    if (++diferencias > 1) return false;
+    j += 1;
+    if (corta.length === larga.length) i += 1;
+  }
+  return diferencias + (larga.length - j) === 1;
 }

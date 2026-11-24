@@ -10,6 +10,7 @@ import { NormaMark } from '@/shared/ai/NormaMark';
 import { NORMA } from '@/shared/ai/identity';
 import { useInspeccionStore } from '@/store/inspeccionStore';
 import { definicionDe, etiquetaEstado, type FilaProceso } from '@/shared/procesos/types';
+import { Markdown } from '@/shared/ai/Markdown';
 import { estilos } from './estilosPagina';
 import { ColumnaLateral } from './ColumnaLateral';
 import { PilaHerramientas } from './PilaHerramientas';
@@ -294,7 +295,11 @@ export function AsistentePage() {
                   </div>
                 ) : (
                   <div key={m.id} style={estilos.turnoAsistente}>
-                    {m.contenido || <span style={estilos.textoTenue}>Consultando a {NORMA.nombre}…</span>}
+                    {m.contenido ? (
+                      <Markdown texto={m.contenido} />
+                    ) : (
+                      <span style={estilos.textoTenue}>Consultando a {NORMA.nombre}…</span>
+                    )}
                   </div>
                 ),
               )

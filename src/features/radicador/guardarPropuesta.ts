@@ -117,9 +117,19 @@ function entradaDeCreacion(peticion: PeticionGuardado): CreateLegalCaseInput {
   };
 }
 
-/** Solo las claves que el catálogo declara: un dato que nadie pidió no se guarda. */
+/**
+ * Solo las claves que el catálogo declara, y nunca las que marca como persona: un
+ * dato que nadie pidió no se guarda, y una persona no se guarda como texto.
+ *
+ * Las de tipo PARTY viajan por `case_parties` —de donde leen Mis procesos, el
+ * encabezado del documento y el seudonimizador—. El agente a veces las devuelve
+ * además dentro de `campos`, y ahí el nombre acababa en los metadatos del
+ * expediente, cuando no como «[object Object]».
+ */
 function metadatos(peticion: PeticionGuardado): string {
-  const declaradas = new Set(peticion.entrada.fields.map((campo) => campo.key));
+  const declaradas = new Set(
+    peticion.entrada.fields.filter((campo) => campo.type !== 'PARTY').map((campo) => campo.key),
+  );
   const campos = Object.entries(peticion.propuesta.campos)
     .filter(([key, valor]) => declaradas.has(key) && valor != null)
     .reduce<Record<string, string>>((acc, [key, valor]) => ({ ...acc, [key]: String(valor) }), {});

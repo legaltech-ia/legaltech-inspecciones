@@ -20,6 +20,8 @@ const QUERELLA: TipologiaCatalogo = {
   citedArticle: 'art. 223, Ley 1801 de 2016',
   termDays: 15,
   fields: [
+    // Como el catálogo real: la persona es un campo declarado, de tipo PARTY.
+    { key: 'querellante', label: 'Querellante', type: 'PARTY', required: true },
     { key: 'asunto', label: 'Asunto', type: 'LONG_TEXT', required: true },
     { key: 'direccionInmueble', label: 'Dirección', type: 'TEXT', required: false },
   ],
@@ -132,6 +134,33 @@ describe('guardar la propuesta del radicador', () => {
     const input = (p.crearCaso as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(input.caseMetadata).toContain('asunto');
     expect(input.caseMetadata).not.toContain('inventado');
+  });
+
+  /**
+   * Medido contra el modelo real: a veces devuelve la persona TAMBIÉN como una clave
+   * de `campos`, y el nombre acababa en los metadatos del expediente como texto —o
+   * como «[object Object]»—. El catálogo ya dice cuáles son personas; las personas
+   * viajan por `case_parties`, que es de donde leen Mis procesos y el encabezado.
+   */
+  it('un campo que el catálogo marca como persona no se guarda en los metadatos', async () => {
+    const p = puertos();
+
+    await guardarPropuesta(p, {
+      propuesta: propuesta({
+        campos: {
+          asunto: 'Ruido',
+          querellante: { nombre: 'A. Pérez' } as unknown as string,
+        },
+      }),
+      entrada: QUERELLA,
+      archivos: [],
+      despacho: DESPACHO,
+    });
+
+    const input = (p.crearCaso as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(input.caseMetadata).toContain('asunto');
+    expect(input.caseMetadata).not.toContain('querellante');
+    expect(input.caseMetadata).not.toContain('object Object');
   });
 
   it('las partes viajan estructuradas, no concatenadas en texto', async () => {
