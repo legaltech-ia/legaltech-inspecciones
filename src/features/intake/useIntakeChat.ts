@@ -52,7 +52,12 @@ export function useIntakeChat() {
       try {
         // Sin caseId: este ES el chat de radicación. Lo que abre el expediente es
         // el botón de guardar del formulario, no esta llamada.
-        const respuesta = await pedirRecepcion({ texto: texto.trim(), archivos });
+        const respuesta = await pedirRecepcion({
+          texto: texto.trim(),
+          archivos,
+          // Una radicación, un hilo de memoria: ver borradorStore.conversacion().
+          conversacionId: useBorradorRadicacion.getState().conversacion(),
+        });
         const leida = leerCaseUpdate<Partial<PropuestaRadicacion>>(respuesta);
         const radicado = leerCaseFiled<CasoRadicado>(respuesta);
 

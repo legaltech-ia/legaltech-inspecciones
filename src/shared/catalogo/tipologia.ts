@@ -34,10 +34,10 @@ export function resolverTipologia(
  * Último recurso: una sola letra de diferencia, y solo si una única tipología queda
  * a esa distancia.
  *
- * Medido contra el modelo real: en 2 de cada 4 querellas devuelve `querrella`. Con
- * un catálogo de cinco entradas distintas eso no es ambiguo, y la elegida se ve en
- * el desplegable. Si hay dos candidatas, no se elige ninguna: adivinar la tipología
- * es peor que preguntarla.
+ * Medido contra el modelo real: en 2 de cada 4 corridas devuelve la clave con una
+ * letra de más. Con un catálogo de pocas entradas distintas eso no es ambiguo, y la
+ * elegida se ve en el desplegable. Si hay dos candidatas no se elige ninguna: adivinar
+ * la tipología es peor que preguntarla.
  */
 function porUnaLetra(catalogo: TipologiaCatalogo[], buscado: string): TipologiaCatalogo | undefined {
   const cerca = catalogo.filter(

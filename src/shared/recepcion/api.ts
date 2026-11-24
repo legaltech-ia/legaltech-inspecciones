@@ -32,6 +32,13 @@ export interface PeticionRecepcion {
    * abre un expediente duplicado cada vez que suba documentos.
    */
   caseId?: string;
+  /**
+   * Qué radicación es esta. El agente tiene memoria, y sin identificar la
+   * conversación TODAS las radicaciones de un inspector caen en el mismo hilo:
+   * el agente propone el asunto de hoy acordándose de los documentos del de
+   * ayer. Lo acuña el borrador y se borra al guardar.
+   */
+  conversacionId?: string;
 }
 
 /**
@@ -43,14 +50,17 @@ export async function pedirRecepcion({
   texto,
   archivos,
   caseId,
+  conversacionId,
 }: PeticionRecepcion): Promise<string> {
   const body = new FormData();
   body.append('data', texto);
   (archivos ?? []).forEach((archivo) => body.append('files', archivo, archivo.name));
 
-  const ruta = caseId
-    ? `${API_BASE}/legal/recepcion?caseId=${encodeURIComponent(caseId)}`
-    : `${API_BASE}/legal/recepcion`;
+  const parametros = new URLSearchParams();
+  if (caseId) parametros.set('caseId', caseId);
+  if (conversacionId) parametros.set('conversationId', conversacionId);
+  const consulta = parametros.toString();
+  const ruta = consulta ? `${API_BASE}/legal/recepcion?${consulta}` : `${API_BASE}/legal/recepcion`;
 
   const res = await fetch(ruta, { method: 'POST', headers: contextHeaders(), body });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);

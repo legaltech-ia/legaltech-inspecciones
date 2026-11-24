@@ -20,7 +20,7 @@ import { Markdown } from '@/shared/ai/Markdown';
 export function HerramientaRadicacion() {
   // El borrador se persiste por inspector: una sesión vencida manda al login, y sin
   // esto el inspector volvía a un formulario vacío (ver borradorStore).
-  const { texto, respuesta, setTexto, proponer } = useBorradorRadicacion();
+  const { texto, respuesta, setTexto, proponer, conversacion } = useBorradorRadicacion();
   const [archivos, setArchivos] = useState<File[]>([]);
   const [leyendo, setLeyendo] = useState(false);
   const [fallo, setFallo] = useState<string | null>(null);
@@ -29,7 +29,7 @@ export function HerramientaRadicacion() {
     setLeyendo(true);
     setFallo(null);
     try {
-      const contestacion = await pedirRecepcion({ texto, archivos });
+      const contestacion = await pedirRecepcion({ texto, archivos, conversacionId: conversacion() });
       const leida = leerCaseUpdate<PropuestaRadicacion>(contestacion);
       proponer(
         limpiarMarcadores(contestacion),
