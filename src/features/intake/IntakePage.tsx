@@ -15,12 +15,15 @@ import {
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { documentTypeFromFileName, type CaseDocumentType } from '@/shared/documentos/types';
-import { DESPACHO, TIPO_SOLICITUD_LABEL, CNSCC, type TipoSolicitud } from '@/derecho';
+import { DESPACHO, CNSCC } from '@/derecho';
 import type { ChatMessage } from './useIntakeChat';
 import { useIntakeChat } from './useIntakeChat';
 import dayjs from 'dayjs';
 import { fechaLarga } from '@/shared/util/fechas';
 import { NormaMark } from '@/shared/ai/NormaMark';
+import { Markdown } from '@/shared/ai/Markdown';
+import { PanelPropuesta } from '@/features/radicador/PanelPropuesta';
+import { useBorradorRadicacion } from '@/features/radicador/borradorStore';
 import { ELEVACION, PALETA } from '@/theme/theme';
 import { TEXTO } from '@/theme/escala';
 
@@ -40,30 +43,6 @@ const ICONO_ANEXO: Record<CaseDocumentType, ReactNode> = {
   WORD: <FileTextOutlined style={{ color: PALETA.azul }} />,
   AUDIO: <FileTextOutlined style={{ color: PALETA.morado }} />,
   OTRO: <FileOutlined style={{ color: PALETA.textoSuave }} />,
-};
-
-// ── Renderizado mínimo de markdown (negrita + saltos de línea) ──────────────
-function renderMd(texto: string) {
-  return texto.split('\n').map((linea, i) => (
-    <span key={i}>
-      {i > 0 && <br />}
-      {linea.split(/\*\*(.*?)\*\*/g).map((parte, j) =>
-        j % 2 === 1 ? <strong key={j}>{parte}</strong> : parte,
-      )}
-    </span>
-  ));
-}
-
-function etiquetaTipo(tipo: string | null): string | null {
-  if (!tipo) return null;
-  return TIPO_SOLICITUD_LABEL[tipo as TipoSolicitud] ?? tipo;
-}
-
-const ROL_LABEL: Record<string, string> = {
-  querellante: 'Querellante',
-  querellado: 'Querellado',
-  quejoso: 'Quejoso',
-  acusado: 'Acusado',
 };
 
 // ── Burbuja de mensaje ────────────────────────────────────────────────────
@@ -98,54 +77,8 @@ function Burbuja({ m }: { m: ChatMessage }) {
         {m.streaming && m.texto === '' ? (
           <span style={{ opacity: 0.45, letterSpacing: 3 }}>●●●</span>
         ) : (
-          renderMd(m.texto)
+          <Markdown texto={m.texto} />
         )}
-      </div>
-    </div>
-  );
-}
-
-// ── Campo de la ficha (solo lectura: lo llena la IA, no el inspector) ──────
-function CampoLectura({
-  label,
-  valor,
-  destacado,
-  vacio = 'Aún no informado',
-}: {
-  label: string;
-  valor: ReactNode;
-  destacado: boolean;
-  vacio?: string;
-}) {
-  const esVacio = valor === null || valor === undefined || valor === '';
-  return (
-    <div style={{ marginBottom: 14 }}>
-      <div
-        style={{
-          fontSize: TEXTO.nota,
-          fontWeight: 600,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase' as const,
-          color: destacado ? PALETA.azulOscuro : PALETA.textoTenue,
-          marginBottom: 5,
-          paddingLeft: 14,
-          transition: 'color 0.4s ease',
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          borderRadius: 14,
-          backgroundColor: destacado ? PALETA.azulSuave : '#f6f7f9',
-          transition: 'background-color 1.6s ease',
-          padding: '7px 14px 8px',
-          fontSize: TEXTO.base,
-          lineHeight: 1.5,
-          color: esVacio ? PALETA.textoTenue : PALETA.texto,
-        }}
-      >
-        {esVacio ? vacio : valor}
       </div>
     </div>
   );
@@ -154,7 +87,8 @@ function CampoLectura({
 // ── Página principal ─────────────────────────────────────────────────────
 export function IntakePage({ selector }: { selector?: ReactNode } = {}) {
   const navigate = useNavigate();
-  const { mensajes, draft, cargando, recentFields, enviar, casoRadicado } = useIntakeChat();
+  const { mensajes, cargando, enviar, casoRadicado } = useIntakeChat();
+  const propuesta = useBorradorRadicacion((s) => s.propuesta);
   const queryClient = useQueryClient();
 
   // Aquí radica el backend, no el frontend: el expediente aparece sin que esta
@@ -206,9 +140,12 @@ export function IntakePage({ selector }: { selector?: ReactNode } = {}) {
   // El caso se radica solo, en el backend, cuando la IA marca
   // listoParaRadicar=true (ver IntakeCaseCreationGate + recepcionRules.st) -
   // este progreso es solo informativo, no gatea ninguna acción del inspector.
-  const camposClave = [Boolean(draft.tipoSolicitud), draft.partes.length > 0, Boolean(draft.hechos)];
-  const camposListos = camposClave.filter(Boolean).length;
-  const progreso = draft.listoParaRadicar ? 1 : camposListos / camposClave.length;
+  const camposClave = [
+    Boolean(propuesta?.tipoSolicitud),
+    (propuesta?.partes.length ?? 0) > 0,
+    Object.values(propuesta?.campos ?? {}).some((v) => v != null && v !== ''),
+  ];
+  const progreso = propuesta?.listoParaRadicar ? 1 : camposClave.filter(Boolean).length / camposClave.length;
 
   return (
     <>
@@ -442,7 +379,7 @@ export function IntakePage({ selector }: { selector?: ReactNode } = {}) {
                 <span style={{ fontSize: TEXTO.seccion, fontWeight: 600, color: PALETA.texto }}>
                   Ficha de radicación
                 </span>
-                {draft.radicado && (
+                {propuesta?.radicadoReferenciado && (
                   <span
                     style={{
                       fontSize: TEXTO.nota,
@@ -454,7 +391,7 @@ export function IntakePage({ selector }: { selector?: ReactNode } = {}) {
                       whiteSpace: 'nowrap' as const,
                     }}
                   >
-                    {draft.radicado}
+                    {propuesta.radicadoReferenciado}
                   </span>
                 )}
               </div>
@@ -492,75 +429,7 @@ export function IntakePage({ selector }: { selector?: ReactNode } = {}) {
 
             {/* Campos de la ficha — reflejan lo que la IA ya extrajo */}
             <div style={{ flex: 1, overflow: 'auto', padding: '4px 20px 8px' }}>
-              <CampoLectura
-                label="Tipo de solicitud"
-                valor={etiquetaTipo(draft.tipoSolicitud)}
-                destacado={recentFields.has('tipoSolicitud')}
-              />
-              <CampoLectura
-                label="Partes"
-                destacado={recentFields.has('partes')}
-                valor={
-                  draft.partes.length > 0
-                    ? draft.partes.map((p, i) => (
-                        <div key={i} style={{ marginBottom: i < draft.partes.length - 1 ? 4 : 0 }}>
-                          <strong>{ROL_LABEL[p.rol] ?? p.rol}:</strong> {p.nombre}
-                          {p.numeroId ? ` (${p.tipoId ?? 'ID'} ${p.numeroId})` : ''}
-                        </div>
-                      ))
-                    : null
-                }
-              />
-              <CampoLectura
-                label="Hechos"
-                valor={draft.hechos}
-                destacado={recentFields.has('hechos')}
-              />
-              <CampoLectura
-                label="Pretensión"
-                valor={draft.pretension}
-                destacado={recentFields.has('pretension')}
-              />
-              <CampoLectura
-                label="Juzgado / Inspección"
-                valor={draft.juzgado}
-                destacado={recentFields.has('juzgado')}
-              />
-              <CampoLectura
-                label="Ciudad"
-                valor={draft.ciudad}
-                destacado={recentFields.has('ciudad')}
-              />
-              <CampoLectura
-                label="Categorías"
-                destacado={recentFields.has('categorias')}
-                valor={
-                  draft.categorias.length > 0
-                    ? draft.categorias.map((c) => (
-                        <span
-                          key={c}
-                          style={{
-                            display: 'inline-block',
-                            background: PALETA.azulSuave,
-                            color: PALETA.azulOscuro,
-                            borderRadius: 999,
-                            padding: '2px 10px',
-                            fontSize: TEXTO.menor,
-                            marginRight: 6,
-                            marginBottom: 4,
-                          }}
-                        >
-                          {c}
-                        </span>
-                      ))
-                    : null
-                }
-              />
-              <CampoLectura
-                label="Observaciones"
-                valor={draft.observaciones}
-                destacado={recentFields.has('observaciones')}
-              />
+              <PanelPropuesta archivos={anexos.map((a) => a.archivo)} />
 
               {anexos.length > 0 && (
                 <div style={{ marginBottom: 14 }}>
@@ -625,11 +494,12 @@ export function IntakePage({ selector }: { selector?: ReactNode } = {}) {
                   padding: '8px 0',
                 }}
               >
+                {/* Decía que el caso se radicaba solo. Ya no: lo radica el inspector. */}
                 {casoRadicado
-                  ? 'Caso radicado automáticamente.'
-                  : draft.listoParaRadicar
-                    ? 'Información completa — radicando…'
-                    : 'El caso se radica solo al completar la información obligatoria.'}
+                  ? 'Caso radicado.'
+                  : propuesta?.listoParaRadicar
+                    ? 'El agente ya tiene lo obligatorio. Revise la ficha y guarde.'
+                    : 'Nada queda radicado hasta que usted pulse «Guardar y radicar».'}
               </div>
             </div>
           </div>

@@ -24,6 +24,7 @@ const CATALOGO: TipologiaCatalogo[] = [
     termDays: 15,
     fields: [
       { key: 'querellante', label: 'Querellante', type: 'PARTY', required: true },
+      { key: 'asunto', label: 'Asunto', type: 'LONG_TEXT', required: true },
       { key: 'direccionInmueble', label: 'Dirección del inmueble', type: 'TEXT', required: false },
     ],
     admissionRequirements: [],
@@ -50,8 +51,18 @@ describe('formulario de la propuesta de radicación', () => {
   it('pinta los campos que declara el catálogo, no una lista fija', () => {
     render(<FormularioPropuesta catalogo={CATALOGO} propuesta={propuesta('querella')} onCambio={vi.fn()} />);
 
-    expect(screen.getByLabelText('Querellante')).toBeDefined();
     expect(screen.getByLabelText('Dirección del inmueble')).toBeDefined();
+  });
+
+  /**
+   * Una persona no es una caja de texto: viaja estructurada por `case_parties`,
+   * con su rol, y el panel la muestra aparte. Escrita aquí acababa además en los
+   * metadatos del expediente como texto suelto.
+   */
+  it('un campo que el catálogo marca como persona no se pinta como texto libre', () => {
+    render(<FormularioPropuesta catalogo={CATALOGO} propuesta={propuesta('querella')} onCambio={vi.fn()} />);
+
+    expect(screen.queryByLabelText('Querellante')).toBeNull();
   });
 
   it('cambia los campos cuando el inspector cambia la tipología', () => {
@@ -77,13 +88,13 @@ describe('formulario de la propuesta de radicación', () => {
     render(
       <FormularioPropuesta
         catalogo={CATALOGO}
-        propuesta={propuesta('querella', { querellante: 'A. Pérez' })}
+        propuesta={propuesta('querella', { direccionInmueble: 'Calle 5 # 10-20' })}
         onCambio={vi.fn()}
       />,
     );
 
-    expect(screen.getByLabelText('Querellante').getAttribute('data-origen')).toBe('ia');
-    expect(screen.getByLabelText('Dirección del inmueble').getAttribute('data-origen')).toBe('inspector');
+    expect(screen.getByLabelText('Dirección del inmueble').getAttribute('data-origen')).toBe('ia');
+    expect(screen.getByLabelText('Asunto').getAttribute('data-origen')).toBe('inspector');
   });
 
   it('dice si la tipología crea expediente o se adjunta a uno', () => {

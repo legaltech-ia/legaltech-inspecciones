@@ -85,15 +85,19 @@ export function FormularioPropuesta({ catalogo, propuesta, onCambio, error }: Fo
         </>
       )}
 
-      {tipologia?.fields.map((campo) => (
-        <Campo
-          key={campo.key}
-          campo={campo}
-          valor={propuesta.campos[campo.key] ?? ''}
-          llenadoPorIa={propuesta.campos[campo.key] != null}
-          onCambio={(valor) => cambiarCampo(campo.key, valor)}
-        />
-      ))}
+      {/* Las de tipo PARTY no: una persona no es una caja de texto, y viaja por
+          `case_parties`. El panel las muestra aparte, con su rol. */}
+      {tipologia?.fields
+        .filter((campo) => campo.type !== 'PARTY')
+        .map((campo) => (
+          <Campo
+            key={campo.key}
+            campo={campo}
+            valor={propuesta.campos[campo.key] ?? ''}
+            llenadoPorIa={propuesta.campos[campo.key] != null}
+            onCambio={(valor) => cambiarCampo(campo.key, valor)}
+          />
+        ))}
     </div>
   );
 }

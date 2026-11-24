@@ -1,32 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { DESPACHO } from '@/derecho';
 import { pedirRecepcion } from '@/shared/recepcion/api';
 import { leerCaseFiled, leerCaseUpdate, limpiarMarcadores } from '@/shared/recepcion/marcadores';
-
-export interface CasoParte {
-  rol: string;
-  tipoId: string | null;
-  numeroId: string | null;
-  nombre: string;
-}
-
-// Espeja el <case_update> que emite legal/recepcionRules.st (ver
-// IntakeCaseCreationGate.IntakeUpdate) campo a campo. Es solo lectura: el
-// inspector ve el progreso que la IA va extrayendo de la conversación, no lo
-// edita a mano - el estado real vive en legalcase una vez radicado.
-export interface CasoDraft {
-  tipoSolicitud: string | null;
-  listoParaRadicar: boolean;
-  radicado: string | null;
-  juzgado: string | null;
-  ciudad: string | null;
-  hechos: string | null;
-  pretension: string | null;
-  partes: CasoParte[];
-  estadoSugerido: string | null;
-  categorias: string[];
-  observaciones: string | null;
-}
+import { useBorradorRadicacion } from '@/features/radicador/borradorStore';
+import { PROPUESTA_VACIA, type PropuestaRadicacion } from '@/shared/catalogo/types';
 
 export interface ChatMessage {
   rol: 'agente' | 'inspector';
@@ -34,6 +11,7 @@ export interface ChatMessage {
   streaming?: boolean;
 }
 
+/** Lo que emite `<case_filed>` cuando el expediente lo abrió el backend. */
 export interface CasoRadicado {
   id: string;
   filingNumber: string;
@@ -41,47 +19,24 @@ export interface CasoRadicado {
   readyForFallo: boolean;
 }
 
-const DRAFT_INICIAL: CasoDraft = {
-  tipoSolicitud: null,
-  listoParaRadicar: false,
-  radicado: null,
-  juzgado: null,
-  ciudad: null,
-  hechos: null,
-  pretension: null,
-  partes: [],
-  estadoSugerido: null,
-  categorias: [],
-  observaciones: null,
-};
-
+/**
+ * La conversación de radicación.
+ *
+ * Lo que el agente extrae se acumula en el borrador compartido, que es de donde
+ * lee el formulario y de donde sale lo que se guarda. Antes vivía en un `draft`
+ * propio, de solo lectura y con claves fijas —hechos, pretensión, juzgado—, que
+ * el catálogo del cerebro no declara: la ficha se quedaba en «Aún no informado»
+ * aunque el agente hubiera leído el documento entero.
+ */
 export function useIntakeChat() {
   const [mensajes, setMensajes] = useState<ChatMessage[]>([
     {
       rol: 'agente',
-      texto:
-        `Buenos días. Soy el asistente de radicación de la ${DESPACHO.nombre}. ¿Cuál es el motivo de su solicitud hoy?`,
+      texto: `Buenos días. Soy el asistente de radicación de la ${DESPACHO.nombre}. ¿Cuál es el motivo de su solicitud hoy?`,
     },
   ]);
-  const [draft, setDraft] = useState<CasoDraft>(DRAFT_INICIAL);
   const [cargando, setCargando] = useState(false);
-  const [recentFields, setRecentFields] = useState<Set<keyof CasoDraft>>(new Set());
   const [casoRadicado, setCasoRadicado] = useState<CasoRadicado | null>(null);
-  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(
-    () => () => {
-      if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
-    },
-    [],
-  );
-
-  const flashFields = useCallback((campos: (keyof CasoDraft)[]) => {
-    if (campos.length === 0) return;
-    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
-    setRecentFields(new Set(campos));
-    flashTimerRef.current = setTimeout(() => setRecentFields(new Set()), 2200);
-  }, []);
 
   const enviar = useCallback(
     async (texto: string, archivos?: File[]) => {
@@ -95,40 +50,56 @@ export function useIntakeChat() {
       setCargando(true);
 
       try {
-        // Sin caseId: este ES el chat de radicacion, el unico que puede abrir
-        // el expediente cuando el agente marca listoParaRadicar.
+        // Sin caseId: este ES el chat de radicación. Lo que abre el expediente es
+        // el botón de guardar del formulario, no esta llamada.
         const respuesta = await pedirRecepcion({ texto: texto.trim(), archivos });
-
-        const actualiza = leerCaseUpdate<CasoDraft>(respuesta) ?? {};
+        const leida = leerCaseUpdate<Partial<PropuestaRadicacion>>(respuesta);
         const radicado = leerCaseFiled<CasoRadicado>(respuesta);
-        const visible = limpiarMarcadores(respuesta);
 
-        setMensajes((prev) => {
-          const copia = [...prev];
-          copia[copia.length - 1] = { rol: 'agente', texto: visible };
-          return copia;
-        });
-
-        if (Object.keys(actualiza).length > 0) {
-          setDraft((prev) => ({ ...prev, ...actualiza }));
-          flashFields(Object.keys(actualiza) as (keyof CasoDraft)[]);
-        }
+        responder(setMensajes, limpiarMarcadores(respuesta));
+        if (leida) acumular(leida, archivos);
         if (radicado) setCasoRadicado(radicado);
       } catch {
-        setMensajes((prev) => {
-          const copia = [...prev];
-          copia[copia.length - 1] = {
-            rol: 'agente',
-            texto: 'Hubo un error al procesar la solicitud. Por favor intente de nuevo.',
-          };
-          return copia;
-        });
+        responder(setMensajes, 'Hubo un error al procesar la solicitud. Por favor intente de nuevo.');
       } finally {
         setCargando(false);
       }
     },
-    [cargando, flashFields],
+    [cargando],
   );
 
-  return { mensajes, draft, cargando, recentFields, enviar, casoRadicado };
+  return { mensajes, cargando, enviar, casoRadicado };
+}
+
+function responder(setMensajes: React.Dispatch<React.SetStateAction<ChatMessage[]>>, texto: string) {
+  setMensajes((prev) => [...prev.slice(0, -1), { rol: 'agente', texto }]);
+}
+
+/**
+ * Funde el turno sobre lo que ya había: una conversación va completando el caso, y
+ * un turno que solo aporta la dirección no puede borrar las partes del anterior.
+ * Lo nuevo gana sobre la clave repetida; las listas vacías no pisan a las llenas.
+ */
+function acumular(leida: Partial<PropuestaRadicacion>, archivos?: File[]) {
+  const { propuesta, documentos, proponer } = useBorradorRadicacion.getState();
+  const previa = propuesta ?? PROPUESTA_VACIA;
+
+  proponer(
+    useBorradorRadicacion.getState().respuesta ?? '',
+    {
+      ...previa,
+      ...soloLoQueTrae(leida),
+      campos: { ...previa.campos, ...(leida.campos ?? {}) },
+      partes: leida.partes?.length ? leida.partes : previa.partes,
+      requisitos: leida.requisitos?.length ? leida.requisitos : previa.requisitos,
+    },
+    [...documentos, ...(archivos ?? []).map((archivo) => archivo.name)],
+  );
+}
+
+/** Un hueco no pisa un dato: el agente devuelve null en lo que todavía no sabe. */
+function soloLoQueTrae(leida: Partial<PropuestaRadicacion>): Partial<PropuestaRadicacion> {
+  return Object.fromEntries(
+    Object.entries(leida).filter(([, valor]) => valor !== undefined && valor !== null),
+  ) as Partial<PropuestaRadicacion>;
 }
