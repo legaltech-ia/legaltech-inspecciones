@@ -1,5 +1,6 @@
 import { useLegalCases, useLegalCase, useCreateLegalCase } from '@/shared/legalCases/api';
 import { parseCaseMetadata, buildCaseMetadata, type LegalCase, type CreateLegalCaseInput } from '@/shared/legalCases/types';
+import { descripcionActuacion, tituloActuacion } from '@/shared/legalCases/historial';
 import { useInspeccionStore } from '@/store/inspeccionStore';
 import { buscarComportamiento, type EstadoComparendo } from '@/derecho';
 import type {
@@ -76,8 +77,8 @@ function legalCaseToComparendo(caso: LegalCase): ComparendoDetalle {
         id: `${caso.id}-${i}`,
         fecha: h.changedAt,
         tipo: tipoActuacion(h.stateCode),
-        titulo: h.stateName ?? h.reason ?? h.stateCode ?? 'Actuación',
-        descripcion: h.stateName ? (h.reason ?? undefined) : undefined,
+        titulo: tituloActuacion(h),
+        descripcion: descripcionActuacion(h),
         estadoCodigo: h.stateCode ?? undefined,
       }),
     ),

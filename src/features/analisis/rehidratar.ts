@@ -20,7 +20,9 @@ function partesOrdenadas(partes: readonly CaseParty[] | undefined): CaseParty[] 
   // [PARTE_1] visible en la vista previa se corrige; un nombre equivocado, no.
   if (conNombre.some((p) => !String(p.id ?? '').trim())) return [];
 
-  return [...conNombre].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  // Orden por unidades de código, el de `String.compareTo` del backend: «10» antes que
+  // «9». localeCompare depende del locale del navegador y podría discrepar.
+  return [...conNombre].sort((a, b) => (String(a.id) < String(b.id) ? -1 : String(a.id) > String(b.id) ? 1 : 0));
 }
 
 /** `[PARTE_1]` → nombre real, `[ID_1]` → identificación real. */

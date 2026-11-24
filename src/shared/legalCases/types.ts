@@ -7,6 +7,13 @@
  * caseMetadata (raw JSON the backend never reads).
  */
 export interface CaseParty {
+  /**
+   * Lo asigna legalcase (IDENTITY) y cambia en cada reemplazo de partes. Ordena el
+   * índice de seudónimos y DEBE coincidir con el del backend — ver
+   * features/analisis/rehidratar.ts. Ausente al crear o reemplazar: ahí lo pone el
+   * servidor. Viaja como número JSON; se compara siempre como texto.
+   */
+  id?: string;
   partyRole: string;
   identificationType: string;
   identificationNumber: string;
