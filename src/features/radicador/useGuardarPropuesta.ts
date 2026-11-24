@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiFetch } from '@/shared/api/client';
 import { subirDocumento } from '@/shared/documentos/api';
 import {
   legalCasesKeys,
@@ -8,8 +7,8 @@ import {
   useReplaceCaseParties,
   useUpdateCaseFields,
 } from '@/shared/legalCases/api';
-import type { LegalCase } from '@/shared/legalCases/types';
 import { useInspeccionStore } from '@/store/inspeccionStore';
+import { buscarPorRadicado } from './buscarPorRadicado';
 import { guardarPropuesta, type PeticionGuardado, type PuertosGuardado } from './guardarPropuesta';
 
 /**
@@ -40,13 +39,4 @@ export function useGuardarPropuesta() {
       void queryClient.invalidateQueries({ queryKey: legalCasesKeys.all });
     },
   });
-}
-
-/** Null cuando no hay expediente con ese radicado: el 404 de legalcase no es un error aquí. */
-async function buscarPorRadicado(radicado: string): Promise<LegalCase | null> {
-  try {
-    return await apiFetch<LegalCase>(`/legal-cases/filing-number/${encodeURIComponent(radicado)}`);
-  } catch {
-    return null;
-  }
 }

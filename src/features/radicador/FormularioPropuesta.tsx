@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { PALETA, ELEVACION } from '@/theme/theme';
 import { TEXTO } from '@/theme/escala';
+import { resolverTipologia } from '@/shared/catalogo/tipologia';
 import type { CampoCatalogo, PropuestaRadicacion, TipologiaCatalogo } from '@/shared/catalogo/types';
 
 /**
@@ -23,7 +24,7 @@ export interface FormularioPropuestaProps {
 
 export function FormularioPropuesta({ catalogo, propuesta, onCambio, error }: FormularioPropuestaProps) {
   const tipologia = useMemo(
-    () => catalogo?.find((entrada) => entrada.key === propuesta.tipoSolicitud),
+    () => resolverTipologia(catalogo, propuesta.tipoSolicitud),
     [catalogo, propuesta.tipoSolicitud],
   );
 
@@ -51,7 +52,7 @@ export function FormularioPropuesta({ catalogo, propuesta, onCambio, error }: Fo
       <select
         id="tipoSolicitud"
         style={estilos.control}
-        value={propuesta.tipoSolicitud ?? ''}
+        value={tipologia?.key ?? ''}
         onChange={(e) => cambiarTipologia(e.target.value)}
       >
         <option value="">Sin determinar</option>

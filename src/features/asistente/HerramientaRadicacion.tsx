@@ -6,6 +6,8 @@ import { leerCaseUpdate, limpiarMarcadores } from '@/shared/recepcion/marcadores
 import { useCaseTypeCatalog } from '@/shared/catalogo/api';
 import { PROPUESTA_VACIA, type PropuestaRadicacion } from '@/shared/catalogo/types';
 import { FormularioPropuesta } from '@/features/radicador/FormularioPropuesta';
+import { useBorradorRadicacion } from '@/features/radicador/borradorStore';
+import { resolverTipologia } from '@/shared/catalogo/tipologia';
 import { useGuardarPropuesta } from '@/features/radicador/useGuardarPropuesta';
 
 /**
@@ -17,27 +19,38 @@ import { useGuardarPropuesta } from '@/features/radicador/useGuardarPropuesta';
  * apagada en el servicio, así que lo único que crea expediente es el botón.
  */
 export function HerramientaRadicacion() {
-  const [texto, setTexto] = useState('');
+  // El borrador se persiste por inspector: una sesión vencida manda al login, y sin
+  // esto el inspector volvía a un formulario vacío (ver borradorStore).
+  const { texto, respuesta, propuesta, documentos, setTexto, setPropuesta, proponer, limpiar } =
+    useBorradorRadicacion();
   const [archivos, setArchivos] = useState<File[]>([]);
-  const [respuesta, setRespuesta] = useState<string | null>(null);
-  const [propuesta, setPropuesta] = useState<PropuestaRadicacion | null>(null);
   const [radicado, setRadicado] = useState<string | null>(null);
   const [leyendo, setLeyendo] = useState(false);
   const [fallo, setFallo] = useState<string | null>(null);
 
+  // Los File no se persisten: si el borrador los recuerda y en memoria no hay
+  // ninguno, el expediente nacería sin sus documentos y nadie lo diría.
+  const faltanDocumentos = documentos.length > 0 && archivos.length === 0;
+
   const catalogo = useCaseTypeCatalog();
   const guardar = useGuardarPropuesta();
 
-  const entrada = catalogo.data?.find((t) => t.key === propuesta?.tipoSolicitud);
+  const entrada = resolverTipologia(catalogo.data, propuesta?.tipoSolicitud);
+  // El agente propuso algo que el catálogo no declara: sin esto el inspector se
+  // quedaba sin botón de guardar y sin saber por qué.
+  const tipologiaDesconocida = Boolean(propuesta?.tipoSolicitud) && !entrada;
 
   const revisar = async () => {
     setLeyendo(true);
     setFallo(null);
     try {
       const contestacion = await pedirRecepcion({ texto, archivos });
-      setRespuesta(limpiarMarcadores(contestacion));
       const leida = leerCaseUpdate<PropuestaRadicacion>(contestacion);
-      setPropuesta(leida ? { ...PROPUESTA_VACIA, ...leida } : null);
+      proponer(
+        limpiarMarcadores(contestacion),
+        leida ? { ...PROPUESTA_VACIA, ...leida } : null,
+        archivos.map((archivo) => archivo.name),
+      );
     } catch {
       setFallo('No se pudo leer el documento. Intente de nuevo.');
     } finally {
@@ -51,6 +64,9 @@ export function HerramientaRadicacion() {
     try {
       const hecho = await guardar.mutateAsync({ propuesta, entrada, archivos });
       setRadicado(hecho.filingNumber ?? hecho.caseId);
+      // Ya está radicado: dejarlo como borrador lo ofrecería otra vez al recargar.
+      limpiar();
+      setArchivos([]);
     } catch (e) {
       setFallo(e instanceof Error ? e.message : 'No se pudo guardar.');
     }
@@ -84,6 +100,18 @@ export function HerramientaRadicacion() {
       {fallo && (
         <p role="alert" style={estilos.error}>
           {fallo}
+        </p>
+      )}
+      {tipologiaDesconocida && (
+        <p role="alert" style={estilos.error}>
+          El agente propuso «{propuesta?.tipoSolicitud}», que no es una tipología de este
+          despacho. Elíjala en el formulario antes de guardar.
+        </p>
+      )}
+      {faltanDocumentos && (
+        <p role="alert" style={estilos.error}>
+          Vuelva a adjuntar {documentos.join(', ')}: los documentos del borrador no se conservan y el
+          expediente se guardaría sin ellos.
         </p>
       )}
 
